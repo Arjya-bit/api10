@@ -27,6 +27,7 @@ import AttackSurface from "@/pages/AttackSurface";
 import Metrics from "@/pages/Metrics";
 import Reports from "@/pages/Reports";
 import SettingsPage from "@/pages/Settings";
+import ThreatIntel from "@/pages/ThreatIntel";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
