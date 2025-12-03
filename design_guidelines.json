@@ -1,0 +1,165 @@
+{
+  "identity": {
+    "name": "APIGuardian",
+    "persona": "The Obsidian Vault",
+    "vibe": "Cybersecurity, Hacker-Chic, Precision, Dark Mode, Data-Dense",
+    "principles": [
+      "Fusion over Imitation: Mix Terminal aesthetics with Modern SaaS usability.",
+      "Information Density: High data-ink ratio. No wasted whitespace in dashboards.",
+      "Visual Tension: Sharp edges vs. glowing accents.",
+      "Darkness is Canvas: Use light only to guide attention (alerts, data)."
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "heading": {
+        "name": "JetBrains Mono",
+        "url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap",
+        "usage": "Headings, Data Values, Code Snippets, KPIs",
+        "weights": ["400", "700"]
+      },
+      "body": {
+        "name": "Inter",
+        "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap",
+        "usage": "Body text, UI labels, Tooltips",
+        "weights": ["400", "500", "600"]
+      }
+    },
+    "rules": [
+      "Use JetBrains Mono for all numbers and metrics to ensure tabular alignment.",
+      "Headings should be uppercase with wide tracking (tracking-widest) for 'System Status' feel.",
+      "Body text should be high contrast (text-gray-300) against dark backgrounds."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": {
+        "default": "#050505",
+        "paper": "#0A0A0A",
+        "subtle": "#121212"
+      },
+      "primary": {
+        "main": "#00FF94",
+        "hover": "#00CC76",
+        "text": "#000000"
+      },
+      "secondary": {
+        "main": "#5865F2",
+        "hover": "#4752C4"
+      },
+      "status": {
+        "critical": "#FF2A6D",
+        "high": "#FF9F1C",
+        "medium": "#F1C40F",
+        "low": "#00FF94",
+        "info": "#5865F2"
+      },
+      "border": {
+        "default": "#1F1F1F",
+        "active": "#333333"
+      },
+      "text": {
+        "primary": "#EDEDED",
+        "secondary": "#A1A1AA",
+        "muted": "#52525B"
+      }
+    },
+    "gradients": {
+      "glow_green": "linear-gradient(180deg, rgba(0, 255, 148, 0.15) 0%, rgba(0, 255, 148, 0) 100%)",
+      "glow_red": "linear-gradient(180deg, rgba(255, 42, 109, 0.15) 0%, rgba(255, 42, 109, 0) 100%)"
+    }
+  },
+  "layout": {
+    "grid_system": "The Control Room Grid (Mode B)",
+    "spacing": {
+      "container_padding": "p-6 md:p-8",
+      "gap": "gap-4 md:gap-6",
+      "internal_padding": "p-4"
+    },
+    "structure": [
+      "Sidebar Navigation (Fixed Left, w-64, border-r border-border)",
+      "Top Bar (Global Search, User Profile, Notifications)",
+      "Main Content Area (Scrollable, Bento Grid Layout)"
+    ],
+    "rules": [
+      "Dashboards must use CSS Grid.",
+      "Widgets must stretch to fill height (h-full).",
+      "Use 'border-collapse' style layouts for data tables."
+    ]
+  },
+  "components": {
+    "cards": {
+      "style": "Sharp edges (rounded-none or rounded-sm), 1px border (border-border), dark background (bg-card).",
+      "hover": "border-primary/50 transition-colors duration-300"
+    },
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-mono uppercase tracking-wider text-xs font-bold px-6 py-2",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-sm font-mono text-xs px-4 py-2",
+      "ghost": "hover:bg-accent hover:text-accent-foreground rounded-sm"
+    },
+    "inputs": {
+      "style": "bg-background border-input focus:border-primary rounded-sm font-mono text-sm"
+    },
+    "charts": {
+      "library": "Recharts (via Shadcn Charts)",
+      "style": "Minimalist, thin lines, neon strokes, dark tooltips."
+    },
+    "status_badges": {
+      "style": "Badge component, outline variant. Color-coded text and border. No solid fills for badges to maintain 'terminal' look."
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "Use sparingly. Only for sticky headers or modal overlays. backdrop-blur-md bg-black/70.",
+    "borders": "1px solid #1F1F1F. Use 'Tracing Beam' effect for active cards.",
+    "shadows": "None for cards (flat). Glow effects for active states (box-shadow: 0 0 20px rgba(0, 255, 148, 0.1)).",
+    "textures": "Subtle scanline overlay (optional) or noise texture on backgrounds to reduce banding."
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1660836814985-8523a0d713b5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxjeWJlcnNlY3VyaXR5JTIwYWJzdHJhY3QlMjBuZXR3b3JrJTIwZGF0YSUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc2NDczODgxN3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract dark network data visualization for login/landing backgrounds."
+    },
+    "server_room": {
+      "url": "https://images.unsplash.com/photo-1645477704075-cb3d14b349ee?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxzZXJ2ZXIlMjByb29tJTIwZGFyayUyMGJsdWUlMjBuZW9uJTIwbGlnaHRzfGVufDB8fHx8MTc2NDczODgxOHww&ixlib=rb-4.1.0&q=85",
+      "description": "Dark server room with neon lights for infrastructure or nodes section."
+    },
+    "attack_surface": {
+      "url": "https://images.unsplash.com/photo-1586036308218-5ed6553c98b6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwbWFwJTIwZ2xvYmFsJTIwbmV0d29yayUyMGNvbm5lY3Rpb24lMjBkYXJrfGVufDB8fHx8MTc2NDczODgxOXww&ixlib=rb-4.1.0&q=85",
+      "description": "Global network map for Attack Surface Visualizer background."
+    },
+    "tech_texture": {
+      "url": "https://images.pexels.com/photos/3354673/pexels-photo-3354673.jpeg",
+      "description": "Generic tech texture for empty states or placeholders."
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Install 'lucide-react' for icons. Use 'recharts' for charts.",
+    "2. THEME: Force DARK MODE by default. Add 'dark' class to the root HTML element or body.",
+    "3. LAYOUT: Build the 'MainLayout' component first with Sidebar and Topbar. All pages wrap inside this.",
+    "4. DASHBOARD: Implement the 'Bento Grid' (Mode B) for the main dashboard. Use 'col-span' classes to size widgets.",
+    "5. CHARTS: Create a 'MetricsChart' component using Recharts. Style it with the neon palette.",
+    "6. VULNERABILITY LIST: Use a dense Data Table. Row heights should be compact (h-10).",
+    "7. ALERTS: Use the 'Sonner' toast library for real-time alerts. Style them with black bg and neon borders.",
+    "8. MAP: For Attack Surface, if 3D is too complex, use a 2D D3.js or Recharts Scatter plot on top of the 'attack_surface' image.",
+    "9. DATA-TESTID: Add 'data-testid' to all interactive elements (buttons, inputs, grid items)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. Avoid this.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts. Use grids.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) sparingly.",
+    "You MUST NOT apply universal transition. Eg: 'transition: all'.",
+    "You MUST NOT center align the app container.",
+    "Always use modern button styles (sharp edges for this persona).",
+    "NEVER use AI assistant Emoji characters.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable inside containers, but keep the grid dense.",
+    "Subtle grain textures, noise overlays, custom cursors.",
+    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN.",
+    "Prioritize using pre-existing components from src/components/ui.",
+    "Components MUST use named exports.",
+    "Pages MUST use default exports.",
+    "Use 'sonner' for toasts."
+  ]
+}
