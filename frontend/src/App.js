@@ -16,7 +16,8 @@ import {
   Search,
   ChevronRight,
   Menu,
-  X
+  X,
+  Globe
 } from "lucide-react";
 
 // Pages
