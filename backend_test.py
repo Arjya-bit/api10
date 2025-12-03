@@ -483,6 +483,14 @@ class APIGuardianTester:
         print("\n📄 Testing Reports...")
         self.test_reports_crud()
         
+        # Test Threat Intelligence
+        print("\n🛡️ Testing Threat Intelligence...")
+        self.test_threat_intel_stats()
+        self.test_threat_intel_ip_analysis()
+        self.test_threat_intel_url_analysis()
+        self.test_threat_intel_hash_analysis()
+        self.test_threat_intel_history()
+        
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Summary:")
