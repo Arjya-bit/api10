@@ -462,6 +462,400 @@ async def create_report(report: Report):
     return report
 
 
+# ============================================
+# IP/URL/Hash Analysis Section (VirusTotal & AbuseIPDB)
+# ============================================
+
+class AnalysisType(str, Enum):
+    IP = "ip"
+    URL = "url"
+    HASH = "hash"
+
+class ThreatLevel(str, Enum):
+    CLEAN = "clean"
+    SUSPICIOUS = "suspicious"
+    MALICIOUS = "malicious"
+    UNKNOWN = "unknown"
+
+class IPAnalysis(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    ip_address: str
+    analysis_type: str = "ip"
+    
+    # VirusTotal data
+    vt_malicious: int = 0
+    vt_suspicious: int = 0
+    vt_harmless: int = 0
+    vt_undetected: int = 0
+    vt_country: Optional[str] = None
+    vt_asn: Optional[int] = None
+    vt_as_owner: Optional[str] = None
+    
+    # AbuseIPDB data
+    abuse_confidence_score: int = 0
+    abuse_total_reports: int = 0
+    abuse_country_code: Optional[str] = None
+    abuse_isp: Optional[str] = None
+    abuse_domain: Optional[str] = None
+    abuse_is_tor: bool = False
+    abuse_is_whitelisted: bool = False
+    abuse_usage_type: Optional[str] = None
+    
+    threat_level: ThreatLevel = ThreatLevel.UNKNOWN
+    analyzed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+class URLAnalysis(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    url: str
+    analysis_type: str = "url"
+    
+    # VirusTotal data
+    vt_malicious: int = 0
+    vt_suspicious: int = 0
+    vt_harmless: int = 0
+    vt_undetected: int = 0
+    vt_categories: Dict[str, str] = {}
+    vt_last_http_response_code: Optional[int] = None
+    
+    threat_level: ThreatLevel = ThreatLevel.UNKNOWN
+    analyzed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class HashAnalysis(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    file_hash: str
+    hash_type: str = "sha256"  # md5, sha1, sha256
+    analysis_type: str = "hash"
+    
+    # VirusTotal data
+    vt_malicious: int = 0
+    vt_suspicious: int = 0
+    vt_harmless: int = 0
+    vt_undetected: int = 0
+    vt_file_type: Optional[str] = None
+    vt_file_size: Optional[int] = None
+    vt_file_names: List[str] = []
+    vt_tags: List[str] = []
+    
+    threat_level: ThreatLevel = ThreatLevel.UNKNOWN
+    analyzed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class AnalysisRequest(BaseModel):
+    value: str
+    analysis_type: AnalysisType
+
+class BulkAnalysisRequest(BaseModel):
+    values: List[str]
+    analysis_type: AnalysisType
+
+
+def determine_threat_level(malicious: int, suspicious: int, abuse_score: int = 0) -> ThreatLevel:
+    """Determine threat level based on detection counts"""
+    if malicious >= 5 or abuse_score >= 80:
+        return ThreatLevel.MALICIOUS
+    elif malicious >= 1 or suspicious >= 3 or abuse_score >= 50:
+        return ThreatLevel.SUSPICIOUS
+    elif malicious == 0 and suspicious == 0 and abuse_score < 25:
+        return ThreatLevel.CLEAN
+    return ThreatLevel.UNKNOWN
+
+
+# VirusTotal API helpers
+async def vt_check_ip(ip_address: str) -> Dict[str, Any]:
+    """Check IP address with VirusTotal"""
+    if not VIRUSTOTAL_API_KEY:
+        return {"error": "VirusTotal API key not configured"}
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.get(
+                f"https://www.virustotal.com/api/v3/ip_addresses/{ip_address}",
+                headers={"x-apikey": VIRUSTOTAL_API_KEY}
+            )
+            if response.status_code == 200:
+                return response.json()
+            return {"error": f"VT API error: {response.status_code}"}
+        except Exception as e:
+            return {"error": str(e)}
+
+async def vt_check_url(url: str) -> Dict[str, Any]:
+    """Check URL with VirusTotal"""
+    if not VIRUSTOTAL_API_KEY:
+        return {"error": "VirusTotal API key not configured"}
+    
+    # URL must be base64 encoded for VT API
+    url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.get(
+                f"https://www.virustotal.com/api/v3/urls/{url_id}",
+                headers={"x-apikey": VIRUSTOTAL_API_KEY}
+            )
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                # URL not in database, submit for scanning
+                submit_response = await client.post(
+                    "https://www.virustotal.com/api/v3/urls",
+                    headers={"x-apikey": VIRUSTOTAL_API_KEY},
+                    data={"url": url}
+                )
+                if submit_response.status_code == 200:
+                    return {"submitted": True, "message": "URL submitted for analysis"}
+            return {"error": f"VT API error: {response.status_code}"}
+        except Exception as e:
+            return {"error": str(e)}
+
+async def vt_check_hash(file_hash: str) -> Dict[str, Any]:
+    """Check file hash with VirusTotal"""
+    if not VIRUSTOTAL_API_KEY:
+        return {"error": "VirusTotal API key not configured"}
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.get(
+                f"https://www.virustotal.com/api/v3/files/{file_hash}",
+                headers={"x-apikey": VIRUSTOTAL_API_KEY}
+            )
+            if response.status_code == 200:
+                return response.json()
+            return {"error": f"VT API error: {response.status_code}"}
+        except Exception as e:
+            return {"error": str(e)}
+
+
+# AbuseIPDB API helper
+async def abuseipdb_check_ip(ip_address: str) -> Dict[str, Any]:
+    """Check IP address with AbuseIPDB"""
+    if not ABUSEIPDB_API_KEY:
+        return {"error": "AbuseIPDB API key not configured"}
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.get(
+                "https://api.abuseipdb.com/api/v2/check",
+                headers={
+                    "Key": ABUSEIPDB_API_KEY,
+                    "Accept": "application/json"
+                },
+                params={
+                    "ipAddress": ip_address,
+                    "maxAgeInDays": 90,
+                    "verbose": ""
+                }
+            )
+            if response.status_code == 200:
+                return response.json()
+            return {"error": f"AbuseIPDB API error: {response.status_code}"}
+        except Exception as e:
+            return {"error": str(e)}
+
+
+# Analysis Endpoints
+@api_router.post("/analysis/ip", response_model=IPAnalysis)
+async def analyze_ip(ip_address: str):
+    """Analyze an IP address using VirusTotal and AbuseIPDB"""
+    # Check VirusTotal
+    vt_result = await vt_check_ip(ip_address)
+    
+    # Check AbuseIPDB
+    abuse_result = await abuseipdb_check_ip(ip_address)
+    
+    # Parse VirusTotal data
+    vt_data = vt_result.get("data", {}).get("attributes", {})
+    vt_stats = vt_data.get("last_analysis_stats", {})
+    
+    # Parse AbuseIPDB data
+    abuse_data = abuse_result.get("data", {})
+    
+    # Create analysis result
+    analysis = IPAnalysis(
+        ip_address=ip_address,
+        vt_malicious=vt_stats.get("malicious", 0),
+        vt_suspicious=vt_stats.get("suspicious", 0),
+        vt_harmless=vt_stats.get("harmless", 0),
+        vt_undetected=vt_stats.get("undetected", 0),
+        vt_country=vt_data.get("country"),
+        vt_asn=vt_data.get("asn"),
+        vt_as_owner=vt_data.get("as_owner"),
+        abuse_confidence_score=abuse_data.get("abuseConfidenceScore", 0),
+        abuse_total_reports=abuse_data.get("totalReports", 0),
+        abuse_country_code=abuse_data.get("countryCode"),
+        abuse_isp=abuse_data.get("isp"),
+        abuse_domain=abuse_data.get("domain"),
+        abuse_is_tor=abuse_data.get("isTor", False),
+        abuse_is_whitelisted=abuse_data.get("isWhitelisted", False),
+        abuse_usage_type=abuse_data.get("usageType")
+    )
+    
+    # Determine threat level
+    analysis.threat_level = determine_threat_level(
+        analysis.vt_malicious,
+        analysis.vt_suspicious,
+        analysis.abuse_confidence_score
+    )
+    
+    # Store in database
+    doc = serialize_doc(analysis.model_dump())
+    await db.ip_analyses.insert_one(doc)
+    
+    return analysis
+
+
+@api_router.post("/analysis/url", response_model=URLAnalysis)
+async def analyze_url(url: str):
+    """Analyze a URL using VirusTotal"""
+    # Check VirusTotal
+    vt_result = await vt_check_url(url)
+    
+    # Parse VirusTotal data
+    vt_data = vt_result.get("data", {}).get("attributes", {})
+    vt_stats = vt_data.get("last_analysis_stats", {})
+    
+    # Create analysis result
+    analysis = URLAnalysis(
+        url=url,
+        vt_malicious=vt_stats.get("malicious", 0),
+        vt_suspicious=vt_stats.get("suspicious", 0),
+        vt_harmless=vt_stats.get("harmless", 0),
+        vt_undetected=vt_stats.get("undetected", 0),
+        vt_categories=vt_data.get("categories", {}),
+        vt_last_http_response_code=vt_data.get("last_http_response_code")
+    )
+    
+    # Determine threat level
+    analysis.threat_level = determine_threat_level(
+        analysis.vt_malicious,
+        analysis.vt_suspicious
+    )
+    
+    # Store in database
+    doc = serialize_doc(analysis.model_dump())
+    await db.url_analyses.insert_one(doc)
+    
+    return analysis
+
+
+@api_router.post("/analysis/hash", response_model=HashAnalysis)
+async def analyze_hash(file_hash: str):
+    """Analyze a file hash using VirusTotal"""
+    # Determine hash type
+    hash_type = "sha256"
+    if len(file_hash) == 32:
+        hash_type = "md5"
+    elif len(file_hash) == 40:
+        hash_type = "sha1"
+    
+    # Check VirusTotal
+    vt_result = await vt_check_hash(file_hash)
+    
+    # Parse VirusTotal data
+    vt_data = vt_result.get("data", {}).get("attributes", {})
+    vt_stats = vt_data.get("last_analysis_stats", {})
+    
+    # Create analysis result
+    analysis = HashAnalysis(
+        file_hash=file_hash,
+        hash_type=hash_type,
+        vt_malicious=vt_stats.get("malicious", 0),
+        vt_suspicious=vt_stats.get("suspicious", 0),
+        vt_harmless=vt_stats.get("harmless", 0),
+        vt_undetected=vt_stats.get("undetected", 0),
+        vt_file_type=vt_data.get("type_description"),
+        vt_file_size=vt_data.get("size"),
+        vt_file_names=vt_data.get("names", [])[:5],  # Limit to 5 names
+        vt_tags=vt_data.get("tags", [])[:10]  # Limit to 10 tags
+    )
+    
+    # Determine threat level
+    analysis.threat_level = determine_threat_level(
+        analysis.vt_malicious,
+        analysis.vt_suspicious
+    )
+    
+    # Store in database
+    doc = serialize_doc(analysis.model_dump())
+    await db.hash_analyses.insert_one(doc)
+    
+    return analysis
+
+
+@api_router.get("/analysis/history")
+async def get_analysis_history(
+    analysis_type: Optional[AnalysisType] = None,
+    threat_level: Optional[ThreatLevel] = None,
+    skip: int = 0,
+    limit: int = 50
+):
+    """Get analysis history from all types"""
+    results = []
+    
+    if analysis_type is None or analysis_type == AnalysisType.IP:
+        query = {}
+        if threat_level:
+            query["threat_level"] = threat_level.value
+        ip_results = await db.ip_analyses.find(query, {"_id": 0}).sort("analyzed_at", -1).skip(skip).limit(limit).to_list(limit)
+        results.extend([{**r, "type": "ip"} for r in ip_results])
+    
+    if analysis_type is None or analysis_type == AnalysisType.URL:
+        query = {}
+        if threat_level:
+            query["threat_level"] = threat_level.value
+        url_results = await db.url_analyses.find(query, {"_id": 0}).sort("analyzed_at", -1).skip(skip).limit(limit).to_list(limit)
+        results.extend([{**r, "type": "url"} for r in url_results])
+    
+    if analysis_type is None or analysis_type == AnalysisType.HASH:
+        query = {}
+        if threat_level:
+            query["threat_level"] = threat_level.value
+        hash_results = await db.hash_analyses.find(query, {"_id": 0}).sort("analyzed_at", -1).skip(skip).limit(limit).to_list(limit)
+        results.extend([{**r, "type": "hash"} for r in hash_results])
+    
+    # Sort by analyzed_at
+    results.sort(key=lambda x: x.get("analyzed_at", ""), reverse=True)
+    
+    return results[:limit]
+
+
+@api_router.get("/analysis/stats")
+async def get_analysis_stats():
+    """Get analysis statistics"""
+    ip_count = await db.ip_analyses.count_documents({})
+    url_count = await db.url_analyses.count_documents({})
+    hash_count = await db.hash_analyses.count_documents({})
+    
+    ip_malicious = await db.ip_analyses.count_documents({"threat_level": "malicious"})
+    url_malicious = await db.url_analyses.count_documents({"threat_level": "malicious"})
+    hash_malicious = await db.hash_analyses.count_documents({"threat_level": "malicious"})
+    
+    ip_suspicious = await db.ip_analyses.count_documents({"threat_level": "suspicious"})
+    url_suspicious = await db.url_analyses.count_documents({"threat_level": "suspicious"})
+    hash_suspicious = await db.hash_analyses.count_documents({"threat_level": "suspicious"})
+    
+    return {
+        "total_analyses": ip_count + url_count + hash_count,
+        "by_type": {
+            "ip": ip_count,
+            "url": url_count,
+            "hash": hash_count
+        },
+        "threats": {
+            "malicious": ip_malicious + url_malicious + hash_malicious,
+            "suspicious": ip_suspicious + url_suspicious + hash_suspicious
+        },
+        "integrations": {
+            "virustotal": bool(VIRUSTOTAL_API_KEY),
+            "abuseipdb": bool(ABUSEIPDB_API_KEY)
+        }
+    }
+
+
 # Seed data endpoint (for demo purposes)
 @api_router.post("/seed")
 async def seed_data():
