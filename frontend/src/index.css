@@ -130,6 +130,14 @@ div:has(> span:contains("Made with Emergent")) {
   opacity: 0 !important;
 }
 
+/* More aggressive watermark hiding */
+body > div:last-child:not(#root):not(.App),
+#root ~ div,
+div[style*="position: fixed"][style*="bottom"],
+div[style*="position:fixed"][style*="bottom"] {
+  display: none !important;
+}
+
 /* Data table styles */
 .data-table tr {
   border-bottom: 1px solid hsl(var(--border));
