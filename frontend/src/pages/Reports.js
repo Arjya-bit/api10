@@ -8,7 +8,7 @@ import {
   Calendar,
   FileJson,
   FileCode,
-  FilePdf,
+  File,
   Plus
 } from "lucide-react";
 import {
