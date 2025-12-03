@@ -40,6 +40,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { path: "/", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/vulnerabilities", icon: Bug, label: "Vulnerabilities" },
+    { path: "/threat-intel", icon: Globe, label: "Threat Intel" },
     { path: "/monitor", icon: Activity, label: "Real-time Monitor" },
     { path: "/attack-surface", icon: Network, label: "Attack Surface" },
     { path: "/metrics", icon: BarChart3, label: "Metrics" },
