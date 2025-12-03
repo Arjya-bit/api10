@@ -22,6 +22,10 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# API Keys for external integrations
+VIRUSTOTAL_API_KEY = os.environ.get('VIRUSTOTAL_API_KEY', '')
+ABUSEIPDB_API_KEY = os.environ.get('ABUSEIPDB_API_KEY', '')
+
 # Create the main app without a prefix
 app = FastAPI(title="APIGuardian", description="API Security Testing & Monitoring Platform")
 
