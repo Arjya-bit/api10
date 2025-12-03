@@ -10,6 +10,8 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
+import httpx
+import base64
 
 
 ROOT_DIR = Path(__file__).parent
