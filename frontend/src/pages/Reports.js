@@ -31,7 +31,7 @@ const ReportTypeIcon = ({ type }) => {
   const icons = {
     json: FileJson,
     html: FileCode,
-    pdf: FilePdf
+    pdf: File
   };
   const Icon = icons[type] || FileText;
   return <Icon className="w-5 h-5" />;
