@@ -97,7 +97,7 @@ const ReportViewer = ({ report, onClose }) => {
           )}
           {report.report_type === "pdf" && (
             <div className="text-center py-12">
-              <FilePdf className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <File className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">PDF preview not available</p>
               <button className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-sm font-mono text-xs uppercase">
                 Download PDF
