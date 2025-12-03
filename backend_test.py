@@ -319,6 +319,138 @@ class APIGuardianTester:
         
         return success
 
+    def test_threat_intel_ip_analysis(self):
+        """Test IP analysis with VirusTotal and AbuseIPDB"""
+        # Test with a known safe IP (Google DNS)
+        success, data = self.run_test(
+            "IP Analysis - Google DNS",
+            "POST",
+            "analysis/ip?ip_address=8.8.8.8",
+            200
+        )
+        
+        if success:
+            required_keys = ["ip_address", "threat_level", "vt_malicious", "vt_suspicious", 
+                           "abuse_confidence_score", "analyzed_at"]
+            missing_keys = [key for key in required_keys if key not in data]
+            if missing_keys:
+                self.log_test("IP Analysis Structure", False, f"Missing keys: {missing_keys}")
+                return False
+            else:
+                self.log_test("IP Analysis Structure", True)
+                # Verify IP address matches
+                if data.get("ip_address") == "8.8.8.8":
+                    self.log_test("IP Analysis Data Integrity", True)
+                    return True
+                else:
+                    self.log_test("IP Analysis Data Integrity", False, f"IP mismatch: {data.get('ip_address')}")
+                    return False
+        return False
+
+    def test_threat_intel_url_analysis(self):
+        """Test URL analysis with VirusTotal"""
+        # Test with a known safe URL
+        success, data = self.run_test(
+            "URL Analysis - Google",
+            "POST",
+            "analysis/url?url=https://www.google.com",
+            200
+        )
+        
+        if success:
+            required_keys = ["url", "threat_level", "vt_malicious", "vt_suspicious", "analyzed_at"]
+            missing_keys = [key for key in required_keys if key not in data]
+            if missing_keys:
+                self.log_test("URL Analysis Structure", False, f"Missing keys: {missing_keys}")
+                return False
+            else:
+                self.log_test("URL Analysis Structure", True)
+                # Verify URL matches
+                if data.get("url") == "https://www.google.com":
+                    self.log_test("URL Analysis Data Integrity", True)
+                    return True
+                else:
+                    self.log_test("URL Analysis Data Integrity", False, f"URL mismatch: {data.get('url')}")
+                    return False
+        return False
+
+    def test_threat_intel_hash_analysis(self):
+        """Test hash analysis with VirusTotal"""
+        # Test with a known hash (EICAR test file SHA256)
+        test_hash = "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
+        success, data = self.run_test(
+            "Hash Analysis - EICAR Test",
+            "POST",
+            f"analysis/hash?file_hash={test_hash}",
+            200
+        )
+        
+        if success:
+            required_keys = ["file_hash", "hash_type", "threat_level", "vt_malicious", 
+                           "vt_suspicious", "analyzed_at"]
+            missing_keys = [key for key in required_keys if key not in data]
+            if missing_keys:
+                self.log_test("Hash Analysis Structure", False, f"Missing keys: {missing_keys}")
+                return False
+            else:
+                self.log_test("Hash Analysis Structure", True)
+                # Verify hash matches and type is detected correctly
+                if data.get("file_hash") == test_hash and data.get("hash_type") == "sha256":
+                    self.log_test("Hash Analysis Data Integrity", True)
+                    return True
+                else:
+                    self.log_test("Hash Analysis Data Integrity", False, 
+                                f"Hash/type mismatch: {data.get('file_hash')}, {data.get('hash_type')}")
+                    return False
+        return False
+
+    def test_threat_intel_stats(self):
+        """Test analysis statistics endpoint"""
+        success, data = self.run_test(
+            "Analysis Stats",
+            "GET",
+            "analysis/stats",
+            200
+        )
+        
+        if success:
+            required_keys = ["total_analyses", "by_type", "threats", "integrations"]
+            missing_keys = [key for key in required_keys if key not in data]
+            if missing_keys:
+                self.log_test("Analysis Stats Structure", False, f"Missing keys: {missing_keys}")
+                return False
+            else:
+                self.log_test("Analysis Stats Structure", True)
+                
+                # Check integrations status
+                integrations = data.get("integrations", {})
+                if "virustotal" in integrations and "abuseipdb" in integrations:
+                    self.log_test("Integration Status Check", True)
+                    return True
+                else:
+                    self.log_test("Integration Status Check", False, "Missing integration status")
+                    return False
+        return False
+
+    def test_threat_intel_history(self):
+        """Test analysis history endpoint"""
+        success, data = self.run_test(
+            "Analysis History",
+            "GET",
+            "analysis/history?limit=10",
+            200
+        )
+        
+        if success:
+            # Should return a list (even if empty)
+            if isinstance(data, list):
+                self.log_test("Analysis History Structure", True)
+                return True
+            else:
+                self.log_test("Analysis History Structure", False, f"Expected list, got {type(data)}")
+                return False
+        return False
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting APIGuardian Backend Tests")
