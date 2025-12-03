@@ -331,6 +331,7 @@ export default function ThreatIntel() {
   };
 
   const handleAnalyze = async () => {
+    console.log("handleAnalyze called, searchValue:", searchValue);
     if (!searchValue.trim()) {
       toast.error("Please enter a value to analyze");
       return;
