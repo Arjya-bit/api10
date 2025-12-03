@@ -468,7 +468,10 @@ export default function ThreatIntel() {
               }
               className="w-full h-10 pl-10 pr-4 bg-background border border-input rounded-sm font-mono text-sm focus:outline-none focus:border-primary"
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={(e) => {
+                console.log("Input changed:", e.target.value);
+                setSearchValue(e.target.value);
+              }}
               onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
               data-testid="search-input"
             />
