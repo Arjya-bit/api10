@@ -118,6 +118,18 @@ body {
   letter-spacing: 0.2em;
 }
 
+/* Hide Emergent watermark */
+[data-testid="emergent-watermark"],
+[class*="emergent"],
+div[style*="Made with Emergent"],
+a[href*="emergent"],
+.emergent-watermark,
+div:has(> span:contains("Made with Emergent")) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 /* Data table styles */
 .data-table tr {
   border-bottom: 1px solid hsl(var(--border));
