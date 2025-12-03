@@ -56,7 +56,14 @@ class APIGuardianTester:
                     self.log_test(name, False, f"Invalid JSON response")
                     return False, {}
             else:
-                self.log_test(name, False, f"Expected {expected_status}, got {response.status_code}")
+                error_details = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    if response.content:
+                        error_response = response.json()
+                        error_details += f" - {error_response}"
+                except:
+                    error_details += f" - Response: {response.text[:200]}"
+                self.log_test(name, False, error_details)
                 return False, {}
 
         except requests.exceptions.RequestException as e:
