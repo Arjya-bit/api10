@@ -209,6 +209,7 @@ function App() {
               <Routes>
                 <Route index element={<Dashboard />} />
                 <Route path="vulnerabilities" element={<Vulnerabilities />} />
+                <Route path="threat-intel" element={<ThreatIntel />} />
                 <Route path="monitor" element={<RealTimeMonitor />} />
                 <Route path="attack-surface" element={<AttackSurface />} />
                 <Route path="metrics" element={<Metrics />} />
