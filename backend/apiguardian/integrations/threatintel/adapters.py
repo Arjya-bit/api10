@@ -640,7 +640,9 @@ ADAPTERS = {
     'abuseipdb': AbuseIPDBAdapter,
     'urlhaus': URLhausAdapter,
     'phishtank': PhishTankAdapter,
-    'google_safebrowsing': GoogleSafeBrowsingAdapter
+    'google_safebrowsing': GoogleSafeBrowsingAdapter,
+    'otx': OTXAdapter,
+    'pulsedive': PulseDiveAdapter
 }
 
 
