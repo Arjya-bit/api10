@@ -4,25 +4,22 @@ const path = require('path');
 
 const app = express();
 
-// Proxy /api and /ws to backend
+// Proxy /api to backend - preserve the /api prefix
 app.use('/api', createProxyMiddleware({
     target: 'http://localhost:8001',
-    changeOrigin: true
+    changeOrigin: true,
+    pathRewrite: null  // Don't rewrite paths, keep /api prefix
 }));
 
+// Proxy /ws to backend for WebSocket
 app.use('/ws', createProxyMiddleware({
     target: 'http://localhost:8001',
     changeOrigin: true,
     ws: true
 }));
 
-// Proxy root health/metrics to backend
+// Proxy root health endpoint to backend
 app.use('/health', createProxyMiddleware({
-    target: 'http://localhost:8001',
-    changeOrigin: true
-}));
-
-app.use('/metrics', createProxyMiddleware({
     target: 'http://localhost:8001',
     changeOrigin: true
 }));
