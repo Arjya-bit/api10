@@ -598,17 +598,22 @@
             `;
         }
         
+        let pluginResults = {};  // Store results per plugin
+        
         async function runSelectedPlugin() {
             const target = document.getElementById('globalTarget').value;
             if (!target) { alert('Please enter a target URL'); return; }
             if (!selectedPlugin) { alert('Please select a plugin'); return; }
             
             const resultsDiv = document.getElementById('pluginResults');
-            resultsDiv.innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Running ${selectedPlugin.name}...</p></div>`;
+            resultsDiv.innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Running ${selectedPlugin.name} against ${target}...</p></div>`;
             
             const plugin = plugins.find(p => p.name === selectedPlugin.name);
             if (plugin) plugin.status = 'running';
             renderPluginsList();
+            
+            // Clear previous results for this plugin
+            pluginResults[selectedPlugin.name] = null;
             
             try {
                 await fetch(`${API_BASE}/plugins/${selectedPlugin.type}/${selectedPlugin.name}/run`, {
@@ -616,16 +621,48 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ target, config: {} })
                 });
-                addFeedItem('plugin.started', `${selectedPlugin.name} started`);
-                setTimeout(async () => {
-                    await fetchPluginResults();
-                    if (plugin) plugin.status = 'completed';
-                    renderPluginsList();
-                }, 3000);
+                addFeedItem('plugin.started', `${selectedPlugin.name} started on ${target}`);
+                // Results will come via WebSocket
             } catch(e) {
                 resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Error running plugin</p></div>`;
                 if (plugin) plugin.status = 'failed';
                 renderPluginsList();
+            }
+        }
+        
+        function handlePluginCompleted(data) {
+            const pluginName = data.plugin;
+            const findings = data.findings || [];
+            
+            // Store results
+            pluginResults[pluginName] = findings;
+            
+            // Update plugin status
+            const plugin = plugins.find(p => p.name === pluginName);
+            if (plugin) plugin.status = 'completed';
+            renderPluginsList();
+            
+            // If this is the currently selected plugin, display results
+            if (selectedPlugin && selectedPlugin.name === pluginName) {
+                displayPluginFindings(findings, pluginName, data.target);
+            }
+            
+            fetchMetrics();
+        }
+        
+        function handlePluginFailed(data) {
+            const pluginName = data.plugin;
+            const plugin = plugins.find(p => p.name === pluginName);
+            if (plugin) plugin.status = 'failed';
+            renderPluginsList();
+            
+            if (selectedPlugin && selectedPlugin.name === pluginName) {
+                document.getElementById('pluginResults').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Plugin failed: ${data.error || 'Unknown error'}</p>
+                    </div>
+                `;
             }
         }
         
