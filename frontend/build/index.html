@@ -397,7 +397,7 @@
                     const res = await fetch(`${API_BASE}/threatintel/lookup`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ indicator, indicator_type: type, service, mode }) });
                     displayTIResults(await res.json(), indicator, service);
                 }
-            } catch(e) { document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed</p></div>`; }
+            } catch(e) { console.error('TI Lookup Error:', e); document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed: ${e.message}</p></div>`; }
         }
         
         function displayTIResults(data, indicator, service) {
