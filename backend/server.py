@@ -3,6 +3,10 @@ import os
 import sys
 import logging
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv('/app/backend/.env')
+
 # Add the backend directory to path for imports
 sys.path.insert(0, '/app/backend')
 
