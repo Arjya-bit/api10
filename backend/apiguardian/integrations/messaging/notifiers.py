@@ -140,6 +140,7 @@ class EmailNotifier(BaseNotifier):
     
     def __init__(self, mode: str = "mock", config: Dict[str, Any] = None):
         super().__init__(mode, config)
+        config = config or {}
         self.smtp_host = config.get('smtp_host') or os.environ.get('SMTP_HOST', 'localhost')
         self.smtp_port = int(config.get('smtp_port') or os.environ.get('SMTP_PORT', 587))
         self.smtp_user = config.get('smtp_user') or os.environ.get('SMTP_USER')
