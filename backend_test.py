@@ -12,8 +12,8 @@ import threading
 from datetime import datetime
 from typing import Dict, Any, Optional
 
-# Base URL for testing - use production URL from frontend env
-BASE_URL = "https://demobackend.emergentagent.com"
+# Base URL for testing - use local backend
+BASE_URL = "http://localhost:8001"
 API_BASE = f"{BASE_URL}/api"
 
 class APIGuardianTester:
