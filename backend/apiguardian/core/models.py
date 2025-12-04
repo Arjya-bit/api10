@@ -53,7 +53,7 @@ class Asset(Base):
     resolved_ips = Column(JSON, default=list)
     open_ports = Column(JSON, default=list)
     internal = Column(Boolean, default=False)
-    metadata = Column(JSON, default=dict)
+    asset_metadata = Column(JSON, default=dict)  # renamed from metadata (reserved)
     added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
