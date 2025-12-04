@@ -675,13 +675,47 @@
             } catch(e) { console.error('Results error:', e); }
         }
         
-        function displayPluginFindings(findings) {
+        function displayPluginFindings(findings, pluginName, target) {
             const resultsDiv = document.getElementById('pluginResults');
             if (!findings || findings.length === 0) {
-                resultsDiv.innerHTML = `<div style="padding: 1rem;"><div class="ti-verdict clean"><div class="ti-verdict-icon">✓</div><div><div class="ti-verdict-label">No Issues Found</div><div style="font-size: 0.85rem; color: var(--text-secondary);">Plugin completed without detecting issues.</div></div></div></div>`;
+                resultsDiv.innerHTML = `
+                    <div style="padding: 1rem;">
+                        <div class="ti-verdict clean">
+                            <div class="ti-verdict-icon">✓</div>
+                            <div>
+                                <div class="ti-verdict-label">No Issues Found</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">${pluginName} completed without detecting issues on ${target || 'target'}.</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 return;
             }
-            let html = `<div style="padding: 0.5rem;"><h4 style="margin-bottom: 0.75rem; color: var(--accent);">${findings.length} Finding(s)</h4>`;
+            
+            // Count by severity
+            const counts = findings.reduce((acc, f) => {
+                const sev = (f.severity || 'info').toLowerCase();
+                acc[sev] = (acc[sev] || 0) + 1;
+                return acc;
+            }, {});
+            
+            let summaryHtml = '<div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">';
+            if (counts.critical) summaryHtml += `<span class="severity critical">${counts.critical} Critical</span>`;
+            if (counts.high) summaryHtml += `<span class="severity high">${counts.high} High</span>`;
+            if (counts.medium) summaryHtml += `<span class="severity medium">${counts.medium} Medium</span>`;
+            if (counts.low) summaryHtml += `<span class="severity low">${counts.low} Low</span>`;
+            if (counts.info) summaryHtml += `<span class="severity info">${counts.info} Info</span>`;
+            summaryHtml += '</div>';
+            
+            let html = `
+                <div style="padding: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="color: var(--accent);">${findings.length} Finding(s) from ${pluginName}</h4>
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">Target: ${target || 'N/A'}</span>
+                    </div>
+                    ${summaryHtml}
+            `;
+            
             for (const f of findings) html += createFindingCard(f);
             html += '</div>';
             resultsDiv.innerHTML = html;
