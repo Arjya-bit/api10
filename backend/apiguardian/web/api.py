@@ -315,6 +315,151 @@ async def list_plugins():
     return plugin_manager.list_plugins()
 
 
+@api_router.post("/plugins/{plugin_type}/{plugin_name}/toggle")
+async def toggle_plugin(plugin_type: str, plugin_name: str, request: PluginToggleRequest):
+    """Enable or disable a plugin"""
+    plugins = plugin_manager.get_all_plugins()
+    if plugin_type not in plugins or plugin_name not in plugins[plugin_type]:
+        raise HTTPException(status_code=404, detail="Plugin not found")
+    
+    plugin_cls = plugins[plugin_type][plugin_name]
+    plugin_cls.enabled = request.enabled
+    return {"plugin": plugin_name, "enabled": request.enabled}
+
+
+@api_router.post("/plugins/{plugin_type}/{plugin_name}/run")
+async def run_plugin(
+    plugin_type: str,
+    plugin_name: str,
+    request: PluginRunRequest,
+    background_tasks: BackgroundTasks
+):
+    """Run a specific plugin against a target"""
+    plugin = plugin_manager.get_plugin(plugin_type, plugin_name, request.config)
+    if not plugin:
+        raise HTTPException(status_code=404, detail="Plugin not found")
+    
+    async def execute_plugin():
+        context = {
+            'target': request.target,
+            'config': request.config,
+            'enable_destructive': request.config.get('enable_destructive', False)
+        }
+        try:
+            results = await plugin.execute(context)
+            # Publish results via event bus
+            await event_bus.publish(Event.create(
+                'plugin.completed',
+                {
+                    'plugin': plugin_name,
+                    'type': plugin_type,
+                    'target': request.target,
+                    'findings_count': len(results),
+                    'findings': results[:5]  # First 5 findings
+                }
+            ))
+        except Exception as e:
+            await event_bus.publish(Event.create(
+                'plugin.failed',
+                {'plugin': plugin_name, 'error': str(e)}
+            ))
+    
+    background_tasks.add_task(execute_plugin)
+    return {"message": f"Plugin {plugin_name} started", "target": request.target}
+
+
+@api_router.get("/plugins/{plugin_type}/{plugin_name}")
+async def get_plugin_details(plugin_type: str, plugin_name: str):
+    """Get detailed info about a plugin"""
+    plugins = plugin_manager.get_all_plugins()
+    if plugin_type not in plugins or plugin_name not in plugins[plugin_type]:
+        raise HTTPException(status_code=404, detail="Plugin not found")
+    
+    plugin_cls = plugins[plugin_type][plugin_name]
+    return {
+        'type': plugin_type,
+        'name': plugin_name,
+        'description': plugin_cls.description,
+        'version': plugin_cls.version,
+        'enabled': plugin_cls.enabled,
+        'destructive': getattr(plugin_cls, 'destructive', False)
+    }
+
+
+# Workflow endpoints
+@api_router.get("/workflows")
+async def list_workflows():
+    """List all workflows"""
+    return workflow_manager.list_workflows()
+
+
+@api_router.get("/workflows/templates")
+async def list_workflow_templates():
+    """List available workflow templates"""
+    return workflow_manager.list_templates()
+
+
+@api_router.post("/workflows")
+async def create_workflow(request: WorkflowRequest, background_tasks: BackgroundTasks):
+    """Create and optionally start a workflow"""
+    workflow = workflow_manager.create_workflow(
+        name=request.name,
+        template=request.template,
+        steps=request.steps if not request.template else None,
+        context={'target': request.target}
+    )
+    
+    if request.target:
+        async def run_workflow():
+            try:
+                await workflow_manager.execute_workflow(workflow.id, engine)
+                await event_bus.publish(Event.create(
+                    'workflow.completed',
+                    {'workflow_id': workflow.id, 'name': workflow.name}
+                ))
+            except Exception as e:
+                await event_bus.publish(Event.create(
+                    'workflow.failed',
+                    {'workflow_id': workflow.id, 'error': str(e)}
+                ))
+        
+        background_tasks.add_task(run_workflow)
+    
+    return {
+        "workflow_id": workflow.id,
+        "name": workflow.name,
+        "steps": len(workflow.steps),
+        "status": "started" if request.target else "created"
+    }
+
+
+@api_router.get("/workflows/{workflow_id}")
+async def get_workflow(workflow_id: str):
+    """Get workflow details and status"""
+    workflow = workflow_manager.get_workflow(workflow_id)
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    return {
+        'id': workflow.id,
+        'name': workflow.name,
+        'status': workflow.status,
+        'steps': [
+            {
+                'id': s.id,
+                'name': s.name,
+                'plugin': f"{s.plugin_type}/{s.plugin_name}",
+                'status': s.status.value,
+                'error': s.error
+            }
+            for s in workflow.steps
+        ],
+        'created_at': workflow.created_at.isoformat(),
+        'started_at': workflow.started_at.isoformat() if workflow.started_at else None,
+        'finished_at': workflow.finished_at.isoformat() if workflow.finished_at else None
+    }
+
+
 # Scheduler endpoints
 @api_router.get("/scheduler/jobs")
 async def list_scheduled_jobs():
