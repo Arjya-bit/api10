@@ -359,7 +359,8 @@
         }
         
         function connectWS() {
-            const wsUrl = `ws://${location.host}/ws/stream`;
+            const wsUrl = `${WS_PROTOCOL}//${location.host}/ws/stream`;
+            console.log('Connecting to WebSocket:', wsUrl);
             ws = new WebSocket(wsUrl);
             ws.onopen = () => {
                 document.getElementById('ws-status').className = 'connected';
