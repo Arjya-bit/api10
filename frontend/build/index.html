@@ -408,6 +408,54 @@
             else if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') { verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Threats confirmed!'; }
             else { verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.'; }
             let detailsHtml = '';
+
+        
+        function displayAggregatedTIResults(data) {
+            const overallVerdict = (data.overall_verdict || 'unknown').toLowerCase();
+            let verdictClass, verdictIcon, verdictLabel, verdictDesc;
+            if (overallVerdict === 'clean' || overallVerdict === 'safe') { verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected across all services.'; }
+            else if (overallVerdict === 'suspicious' || overallVerdict === 'medium') { verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected by one or more services.'; }
+            else if (overallVerdict === 'malicious' || overallVerdict === 'high' || overallVerdict === 'critical') { verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Confirmed threats detected!'; }
+            else { verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.'; }
+            
+            // Build service breakdown
+            let servicesHtml = '<div style="margin-top: 1rem;"><div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 0.5rem;">Service Breakdown:</div>';
+            for (const result of data.results || []) {
+                const serviceName = result.service || 'Unknown';
+                const threatLevel = (result.threat_level || result.note || 'N/A').toLowerCase();
+                let serviceIcon = '○', serviceColor = 'var(--text-secondary)';
+                if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') { serviceIcon = '✗'; serviceColor = 'var(--critical)'; }
+                else if (threatLevel === 'suspicious' || threatLevel === 'medium') { serviceIcon = '⚠'; serviceColor = 'var(--high)'; }
+                else if (threatLevel === 'clean' || threatLevel === 'safe') { serviceIcon = '✓'; serviceColor = 'var(--accent)'; }
+                
+                servicesHtml += `<div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border);"><span style="text-transform: capitalize;">${serviceName}</span><span style="color: ${serviceColor}; font-weight: bold;">${serviceIcon} ${threatLevel.toUpperCase()}</span></div>`;
+            }
+            servicesHtml += '</div>';
+            
+            // Overall stats
+            const statsHtml = `<div class="ti-details">
+                <div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.8rem; word-break: break-all;">${data.indicator}</div></div>
+                <div class="ti-detail"><div class="ti-detail-label">Services Queried</div><div class="ti-detail-value">${data.total_services}</div></div>
+                <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: var(--critical)">${data.threat_counts?.malicious || 0}</div></div>
+                <div class="ti-detail"><div class="ti-detail-label">Suspicious</div><div class="ti-detail-value" style="color: var(--high)">${data.threat_counts?.suspicious || 0}</div></div>
+                <div class="ti-detail"><div class="ti-detail-label">Clean</div><div class="ti-detail-value" style="color: var(--accent)">${data.threat_counts?.clean || 0}</div></div>
+            </div>`;
+            
+            document.getElementById('tiResults').innerHTML = `<div class="panel">
+                <div class="ti-verdict ${verdictClass}">
+                    <div class="ti-verdict-icon">${verdictIcon}</div>
+                    <div>
+                        <div class="ti-verdict-label">${verdictLabel}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${verdictDesc}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">${data.verdict_reason}</div>
+                    </div>
+                </div>
+                ${statsHtml}
+                ${servicesHtml}
+                <details style="margin-top: 1rem;"><summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.8rem;">Raw Response</summary><pre style="margin-top: 0.5rem; font-size: 0.75rem; overflow-x: auto; background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px;">${JSON.stringify(data, null, 2)}</pre></details>
+            </div>`;
+        }
+
             if (service === 'virustotal') { detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: ${(data.malicious||0) > 0 ? 'var(--critical)' : 'var(--accent)'}">${data.malicious||0}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || 'N/A'}</div></div>`; }
             else if (service === 'abuseipdb') { const s = data.abuse_confidence_score||0, r = data.total_reports||0; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Abuse Score</div><div class="ti-detail-value" style="color: ${s>=50||r>=100 ? 'var(--critical)' : s>=25||r>=10 ? 'var(--high)' : 'var(--accent)'}">${s}%</div></div><div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value">${r}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country_code||'N/A'}</div></div><div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp||'N/A'}</div></div>`; }
             else if (service === 'otx') { const p = data.pulse_count||0; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Pulse Count</div><div class="ti-detail-value" style="color: ${p>=10 ? 'var(--critical)' : p>=3 ? 'var(--high)' : 'var(--accent)'}">${p}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country||data.country_code||'N/A'}</div></div><div class="ti-detail"><div class="ti-detail-label">ASN</div><div class="ti-detail-value">${data.asn||'N/A'}</div></div>`; }
