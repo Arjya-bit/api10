@@ -403,10 +403,22 @@
                     <div class="feed-item">Waiting for events...</div>
                 </div>
                 
-                <h2>Plugins</h2>
+                <h2>Workflow Templates</h2>
                 <div class="panel">
-                    <div class="plugins-grid" id="pluginsList"></div>
+                    <div class="workflow-templates" id="workflowTemplates"></div>
+                    <div class="scan-form" style="margin-top: 0.75rem;">
+                        <input type="text" id="workflowTarget" placeholder="Target URL for workflow" style="flex:1" />
+                        <button class="btn" onclick="startWorkflow()">Run Workflow</button>
+                    </div>
                 </div>
+            </div>
+        </div>
+        
+        <div class="workflow-section">
+            <h2>Security Plugins</h2>
+            <p class="meta" style="margin-bottom: 1rem;">Click RUN to execute individual plugins against a target, or toggle to enable/disable in scans</p>
+            <div class="panel">
+                <div class="plugins-grid" id="pluginsList"></div>
             </div>
         </div>
     </div>
