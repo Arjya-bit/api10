@@ -204,6 +204,54 @@ backend:
         agent: "main"
         comment: "GET / renders dashboard HTML with metrics cards and live feed"
 
+  - task: "Assets API"
+    implemented: true
+    working: true
+    file: "/app/backend/apiguardian/web/api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/assets and POST /api/assets working correctly. Asset creation with query parameters tested successfully."
+
+  - task: "Scheduler API"
+    implemented: true
+    working: true
+    file: "/app/backend/apiguardian/web/api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "GET /api/scheduler/jobs, POST /api/scheduler/jobs, DELETE /api/scheduler/jobs/{id} all working correctly. Cron job scheduling and deletion tested successfully."
+
+  - task: "Integration testing API"
+    implemented: true
+    working: true
+    file: "/app/backend/apiguardian/web/api.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "POST /api/integrations/test/{type}/{name} working correctly for both SIEM and messaging integrations. Fixed minor config handling bug in integration connectors. Mock mode testing successful for Slack, Teams, Splunk, Elasticsearch, and QRadar integrations."
+
+  - task: "Error handling and validation"
+    implemented: true
+    working: true
+    file: "/app/backend/apiguardian/web/api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive error handling tested: 404 responses for non-existent resources, 400 responses for invalid requests, proper validation of request parameters. All error scenarios handled correctly."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
