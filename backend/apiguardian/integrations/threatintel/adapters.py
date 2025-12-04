@@ -264,19 +264,29 @@ class AbuseIPDBAdapter(BaseTIAdapter):
             if response.status_code == 200:
                 data = response.json().get('data', {})
                 score = data.get('abuseConfidenceScore', 0)
+                total_reports = data.get('totalReports', 0)
+                
+                # Better threat level detection based on score and reports
+                if score >= 50 or total_reports >= 100:
+                    threat_level = 'malicious'
+                elif score >= 25 or total_reports >= 10:
+                    threat_level = 'suspicious'
+                else:
+                    threat_level = 'clean'
+                
                 return {
                     'service': self.service_name,
                     'indicator': ip,
                     'type': 'ip',
                     'abuse_confidence_score': score,
-                    'total_reports': data.get('totalReports', 0),
+                    'total_reports': total_reports,
                     'country_code': data.get('countryCode'),
                     'isp': data.get('isp'),
                     'domain': data.get('domain'),
                     'is_tor': data.get('isTor', False),
                     'is_whitelisted': data.get('isWhitelisted', False),
                     'usage_type': data.get('usageType'),
-                    'threat_level': 'malicious' if score >= 80 else 'suspicious' if score >= 50 else 'clean',
+                    'threat_level': threat_level,
                     'queried_at': datetime.now(timezone.utc).isoformat()
                 }
         except Exception as e:
