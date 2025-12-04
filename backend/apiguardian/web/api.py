@@ -347,15 +347,30 @@ async def run_plugin(
         }
         try:
             results = await plugin.execute(context)
-            # Publish results via event bus
+            # Format findings for display
+            formatted_findings = []
+            for r in results:
+                formatted_findings.append({
+                    'issue': r.get('issue', 'Unknown Issue'),
+                    'severity': r.get('severity', 'info'),
+                    'category': r.get('category', 'General'),
+                    'endpoint': r.get('endpoint', request.target),
+                    'method': r.get('method', 'GET'),
+                    'evidence': r.get('evidence', ''),
+                    'description': r.get('description', r.get('issue', '')),
+                    'cwe_id': r.get('cwe_id', ''),
+                    'recommendation': r.get('recommendation', '')
+                })
+            
+            # Publish results via event bus with ALL findings
             await event_bus.publish(Event.create(
                 'plugin.completed',
                 {
                     'plugin': plugin_name,
                     'type': plugin_type,
                     'target': request.target,
-                    'findings_count': len(results),
-                    'findings': results[:5]  # First 5 findings
+                    'findings_count': len(formatted_findings),
+                    'findings': formatted_findings  # Send ALL findings
                 }
             ))
         except Exception as e:
