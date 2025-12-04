@@ -30,8 +30,8 @@ app.use('/metrics', createProxyMiddleware({
 // Serve static files
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback to index.html for SPA
-app.get('*', (req, res) => {
+// Fallback to index.html for SPA - use regex to avoid path-to-regexp issues
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
