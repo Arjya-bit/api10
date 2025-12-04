@@ -161,6 +161,7 @@ class QRadarConnector(BaseSIEMConnector):
     
     def __init__(self, mode: str = "mock", config: Dict[str, Any] = None):
         super().__init__(mode, config)
+        config = config or {}
         self.qradar_url = config.get('qradar_url') or os.environ.get('QRADAR_URL')
         self.api_token = config.get('api_token') or os.environ.get('QRADAR_API_TOKEN')
         
