@@ -276,26 +276,50 @@ agent_communication:
   - task: "New Analyzers (Phase B & C)"
     implemented: true
     working: true
-    files:
-      - "/app/backend/apiguardian/modules/analyzers/replay_attack_detector.py"
-      - "/app/backend/apiguardian/modules/analyzers/auth_analyzer.py"
-      - "/app/backend/apiguardian/modules/analyzers/cloud_analyzer.py"
-    status: verified via plugin run API
+    file: "/app/backend/apiguardian/modules/analyzers/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive testing completed: All 3 new analyzers (auth_analyzer, cloud_analyzer, replay_attack_detector) are present in plugin list, plugin details API working, plugin toggle functionality working, and plugin run API successfully executes auth_analyzer against httpbin.org target."
 
   - task: "New Fuzzers (Phase B & C)"
     implemented: true
     working: true
-    files:
-      - "/app/backend/apiguardian/modules/fuzzers/schema_fuzzer.py"
-      - "/app/backend/apiguardian/modules/fuzzers/mutation_fuzzer.py"
-      - "/app/backend/apiguardian/modules/fuzzers/graphql_fuzzer.py"
-    status: plugins registered and visible in API
+    file: "/app/backend/apiguardian/modules/fuzzers/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "All 3 new fuzzers (schema_fuzzer, mutation_fuzzer, graphql_fuzzer) are present and registered in the plugin system. Plugin details API returns correct information for all fuzzer plugins."
 
   - task: "Workflow Manager"
     implemented: true
     working: true
     file: "/app/backend/apiguardian/core/workflow_manager.py"
-    status: workflow started and running via API
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Workflow management fully functional: GET /api/workflows/templates returns 4 templates (quick_scan, full_scan, api_pentest, compliance_check), POST /api/workflows successfully creates and starts workflows, GET /api/workflows lists all workflows, GET /api/workflows/{id} returns detailed workflow status with step progression."
+
+  - task: "Plugin Management API (Phase B & C)"
+    implemented: true
+    working: true
+    file: "/app/backend/apiguardian/web/api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "All new plugin management endpoints working: GET /api/plugins shows 12+ plugins including new analyzers and fuzzers, GET /api/plugins/{type}/{name} returns plugin details, POST /api/plugins/{type}/{name}/toggle successfully enables/disables plugins, POST /api/plugins/{type}/{name}/run executes plugins against targets and publishes results via event bus."
 
   - task: "ML Anomaly Detection"
     implemented: true
