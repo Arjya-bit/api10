@@ -441,7 +441,7 @@ class APIGuardianTester:
     def test_websocket_connection(self):
         """Test WebSocket /ws/stream"""
         try:
-            ws_url = f"ws://localhost:8001/ws/stream"
+            ws_url = f"wss://demobackend.emergentagent.com/ws/stream"
             
             def on_message(ws, message):
                 print(f"WebSocket received: {message}")
