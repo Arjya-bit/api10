@@ -55,6 +55,22 @@ class ScheduleJobRequest(BaseModel):
     scan_type: str = "quick"
 
 
+class PluginToggleRequest(BaseModel):
+    enabled: bool
+
+
+class WorkflowRequest(BaseModel):
+    name: str = "Custom Workflow"
+    template: Optional[str] = None
+    target: str = ""
+    steps: List[Dict[str, Any]] = []
+
+
+class PluginRunRequest(BaseModel):
+    target: str
+    config: Dict[str, Any] = {}
+
+
 # Lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
