@@ -171,11 +171,14 @@ backend:
     file: "/app/backend/apiguardian/web/api.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "GET /api/findings returns findings list (empty after httpbin scan which is expected)"
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive testing completed: GET /api/findings, GET /api/findings/{id}, PATCH /api/findings/{id}, filtering by severity and status all working correctly. Error handling for non-existent findings returns proper 404 responses."
 
   - task: "WebSocket live feed"
     implemented: true
