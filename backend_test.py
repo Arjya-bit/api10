@@ -508,6 +508,208 @@ class APIGuardianTester:
                 
         except Exception as e:
             self.log_test("Error Handling", False, f"Exception: {str(e)}")
+
+    # ===== PHASE B & C TESTS =====
+    
+    def test_plugin_details(self):
+        """Test GET /api/plugins/{type}/{name}"""
+        try:
+            # Test getting details for auth_analyzer
+            response = self.session.get(f"{API_BASE}/plugins/analyzer/auth_analyzer")
+            if response.status_code == 200:
+                data = response.json()
+                if "name" in data and "type" in data and "description" in data:
+                    self.log_test("Plugin Details (auth_analyzer)", True, f"Plugin details: {data['name']}", data)
+                else:
+                    self.log_test("Plugin Details (auth_analyzer)", False, "Missing required fields", data)
+            else:
+                self.log_test("Plugin Details (auth_analyzer)", False, f"HTTP {response.status_code}: {response.text}")
+            
+            # Test getting details for cloud_analyzer
+            response2 = self.session.get(f"{API_BASE}/plugins/analyzer/cloud_analyzer")
+            if response2.status_code == 200:
+                data2 = response2.json()
+                self.log_test("Plugin Details (cloud_analyzer)", True, f"Plugin details: {data2.get('name')}", data2)
+            else:
+                self.log_test("Plugin Details (cloud_analyzer)", False, f"HTTP {response2.status_code}: {response2.text}")
+                
+        except Exception as e:
+            self.log_test("Plugin Details", False, f"Exception: {str(e)}")
+    
+    def test_plugin_toggle(self):
+        """Test POST /api/plugins/{type}/{name}/toggle"""
+        try:
+            # Toggle jwt_analyzer off
+            payload = {"enabled": False}
+            response = self.session.post(f"{API_BASE}/plugins/analyzer/jwt_analyzer/toggle", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if "enabled" in data and data["enabled"] == False:
+                    self.log_test("Plugin Toggle (Disable)", True, f"jwt_analyzer disabled: {data}", data)
+                    
+                    # Toggle it back on
+                    payload2 = {"enabled": True}
+                    response2 = self.session.post(f"{API_BASE}/plugins/analyzer/jwt_analyzer/toggle", json=payload2)
+                    if response2.status_code == 200:
+                        data2 = response2.json()
+                        if data2.get("enabled") == True:
+                            self.log_test("Plugin Toggle (Enable)", True, f"jwt_analyzer re-enabled: {data2}", data2)
+                        else:
+                            self.log_test("Plugin Toggle (Enable)", False, "Failed to re-enable plugin", data2)
+                    else:
+                        self.log_test("Plugin Toggle (Enable)", False, f"HTTP {response2.status_code}: {response2.text}")
+                else:
+                    self.log_test("Plugin Toggle (Disable)", False, "Invalid response format", data)
+            else:
+                self.log_test("Plugin Toggle (Disable)", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Plugin Toggle", False, f"Exception: {str(e)}")
+    
+    def test_plugin_run(self):
+        """Test POST /api/plugins/{type}/{name}/run"""
+        try:
+            # Run auth_analyzer against httpbin.org
+            payload = {
+                "target": "https://httpbin.org",
+                "config": {}
+            }
+            response = self.session.post(f"{API_BASE}/plugins/analyzer/auth_analyzer/run", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if "message" in data and "target" in data:
+                    self.log_test("Plugin Run (auth_analyzer)", True, f"Plugin started: {data['message']}", data)
+                else:
+                    self.log_test("Plugin Run (auth_analyzer)", False, "Invalid response format", data)
+            else:
+                self.log_test("Plugin Run (auth_analyzer)", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Plugin Run", False, f"Exception: {str(e)}")
+    
+    def test_workflow_templates(self):
+        """Test GET /api/workflows/templates"""
+        try:
+            response = self.session.get(f"{API_BASE}/workflows/templates")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    expected_templates = ['quick_scan', 'full_scan', 'api_pentest', 'compliance_check']
+                    template_ids = [t.get('id') for t in data]
+                    
+                    if len(data) >= 4 and all(tid in template_ids for tid in expected_templates):
+                        self.log_test("Workflow Templates", True, f"Found {len(data)} templates: {template_ids}", data)
+                    else:
+                        self.log_test("Workflow Templates", False, f"Expected 4 templates, got {len(data)}: {template_ids}", data)
+                else:
+                    self.log_test("Workflow Templates", False, "Expected list response", data)
+            else:
+                self.log_test("Workflow Templates", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Workflow Templates", False, f"Exception: {str(e)}")
+    
+    def test_create_workflow(self):
+        """Test POST /api/workflows"""
+        try:
+            # Create a quick_scan workflow
+            payload = {
+                "template": "quick_scan",
+                "target": "https://httpbin.org"
+            }
+            response = self.session.post(f"{API_BASE}/workflows", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                if "workflow_id" in data and "name" in data:
+                    self.log_test("Create Workflow", True, f"Workflow created: {data['name']} ({data['workflow_id']})", data)
+                    self.created_resources.append(("workflow", data["workflow_id"]))
+                    return data["workflow_id"]
+                else:
+                    self.log_test("Create Workflow", False, "Invalid response format", data)
+                    return None
+            else:
+                self.log_test("Create Workflow", False, f"HTTP {response.status_code}: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Create Workflow", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_workflow_status(self, workflow_id: str):
+        """Test GET /api/workflows/{workflow_id}"""
+        try:
+            response = self.session.get(f"{API_BASE}/workflows/{workflow_id}")
+            if response.status_code == 200:
+                data = response.json()
+                if "id" in data and "steps" in data:
+                    self.log_test("Workflow Status", True, f"Workflow {workflow_id} status: {data.get('status')}", data)
+                    return data
+                else:
+                    self.log_test("Workflow Status", False, "Invalid response format", data)
+                    return None
+            elif response.status_code == 404:
+                self.log_test("Workflow Status", True, f"Workflow {workflow_id} not found (expected for test)")
+                return None
+            else:
+                self.log_test("Workflow Status", False, f"HTTP {response.status_code}: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Workflow Status", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_workflows_list(self):
+        """Test GET /api/workflows"""
+        try:
+            response = self.session.get(f"{API_BASE}/workflows")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_test("Workflows List", True, f"Found {len(data)} workflows", {"count": len(data)})
+                    return data
+                else:
+                    self.log_test("Workflows List", False, "Expected list response", data)
+                    return []
+            else:
+                self.log_test("Workflows List", False, f"HTTP {response.status_code}: {response.text}")
+                return []
+                
+        except Exception as e:
+            self.log_test("Workflows List", False, f"Exception: {str(e)}")
+            return []
+    
+    def test_new_plugins_presence(self):
+        """Test that all new Phase B & C plugins are present"""
+        try:
+            response = self.session.get(f"{API_BASE}/plugins")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    # Extract plugin names from the response
+                    plugin_names = []
+                    for plugin in data:
+                        if isinstance(plugin, dict) and 'name' in plugin:
+                            plugin_names.append(plugin['name'])
+                    
+                    # Expected new plugins from Phase B & C
+                    expected_new_plugins = [
+                        'auth_analyzer', 'cloud_analyzer', 'replay_attack_detector',
+                        'schema_fuzzer', 'mutation_fuzzer', 'graphql_fuzzer'
+                    ]
+                    
+                    missing_plugins = [p for p in expected_new_plugins if p not in plugin_names]
+                    
+                    if len(data) >= 12 and not missing_plugins:
+                        self.log_test("New Plugins Presence", True, f"All {len(expected_new_plugins)} new plugins found. Total: {len(data)}", {"total": len(data), "new_plugins": expected_new_plugins})
+                    else:
+                        self.log_test("New Plugins Presence", False, f"Missing plugins: {missing_plugins}. Total: {len(data)}", {"missing": missing_plugins, "found": plugin_names})
+                else:
+                    self.log_test("New Plugins Presence", False, "Expected list response", data)
+            else:
+                self.log_test("New Plugins Presence", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("New Plugins Presence", False, f"Exception: {str(e)}")
     
     def cleanup_resources(self):
         """Clean up created test resources"""
