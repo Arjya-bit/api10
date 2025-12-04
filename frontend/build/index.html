@@ -953,8 +953,22 @@
             ws.onmessage = (e) => {
                 try {
                     const data = JSON.parse(e.data);
-                    addFeedItem(data.type, data.data?.issue || JSON.stringify(data.data).slice(0, 100));
-                    if (data.type === 'plugin.completed' || data.type === 'finding.created' || data.type === 'workflow.completed') fetchMetrics();
+                    const eventType = data.type;
+                    const eventData = data.data || {};
+                    
+                    // Add to feed
+                    if (eventType === 'plugin.completed') {
+                        addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s) on ${eventData.target}`);
+                        handlePluginCompleted(eventData);
+                    } else if (eventType === 'plugin.failed') {
+                        addFeedItem(eventType, `${eventData.plugin} failed: ${eventData.error}`);
+                        handlePluginFailed(eventData);
+                    } else if (eventType === 'workflow.completed') {
+                        addFeedItem(eventType, `Workflow completed`);
+                        fetchMetrics();
+                    } else {
+                        addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
+                    }
                 } catch { addFeedItem('event', e.data); }
             };
         }
