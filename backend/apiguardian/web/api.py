@@ -22,6 +22,7 @@ from apiguardian.core.models import (
 from apiguardian.core.event_bus import event_bus, Event
 from apiguardian.core.scheduler import scheduler
 from apiguardian.core.plugin_manager import plugin_manager
+from apiguardian.core.workflow_manager import workflow_manager
 from apiguardian.integrations.threatintel.adapters import get_adapter, ADAPTERS
 from apiguardian.integrations.siem.connectors import get_siem_connector, SIEM_CONNECTORS
 from apiguardian.integrations.messaging.notifiers import get_notifier, NOTIFIERS
