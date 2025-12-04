@@ -52,6 +52,7 @@ class SplunkConnector(BaseSIEMConnector):
     
     def __init__(self, mode: str = "mock", config: Dict[str, Any] = None):
         super().__init__(mode, config)
+        config = config or {}
         self.hec_url = config.get('hec_url') or os.environ.get('SPLUNK_HEC_URL')
         self.hec_token = config.get('hec_token') or os.environ.get('SPLUNK_HEC_TOKEN')
         self.index = config.get('index', 'security')
