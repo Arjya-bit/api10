@@ -1,10 +1,393 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=/api/../" />
-    <script>window.location.href = window.location.origin.replace(':3000', ':8001') || '/';</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APIGuardian - API Security Platform</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111;
+            --text-primary: #eee;
+            --text-secondary: #888;
+            --accent: #00ff94;
+            --critical: #ff2a6d;
+            --high: #ff9f1c;
+            --medium: #f1c40f;
+            --low: #00ff94;
+            --info: #5865f2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        h1 { 
+            color: var(--accent); 
+            font-size: 2rem; 
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+        }
+        h2 { 
+            color: var(--text-primary); 
+            font-size: 1.1rem; 
+            margin: 2rem 0 1rem;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .meta { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 2rem; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 1.25rem;
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: monospace;
+        }
+        .stat-card.critical .value { color: var(--critical); }
+        .stat-card.high .value { color: var(--high); }
+        .stat-card.medium .value { color: var(--medium); }
+        .stat-card.total .value { color: var(--accent); }
+        
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+        
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 1.25rem;
+        }
+        
+        .live-feed {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .feed-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #222;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        .feed-item:last-child { border-bottom: none; }
+        
+        .connected { color: var(--accent); }
+        .disconnected { color: var(--critical); }
+        
+        .scan-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .scan-form input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .scan-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .btn {
+            padding: 0.5rem 1.5rem;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .jobs-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .job-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #222;
+        }
+        .job-item:last-child { border-bottom: none; }
+        .job-name { font-family: monospace; font-size: 0.85rem; }
+        .job-status {
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+        .job-status.running { background: rgba(0,255,148,0.1); color: var(--accent); }
+        .job-status.completed { background: rgba(88,101,242,0.1); color: var(--info); }
+        .job-status.failed { background: rgba(255,42,109,0.1); color: var(--critical); }
+        
+        .plugins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        .plugin-item {
+            background: #1a1a1a;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .plugin-name { color: var(--accent); font-family: monospace; }
+        .plugin-desc { color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem; }
+        
+        .ti-form {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .ti-form input, .ti-form select {
+            padding: 0.4rem 0.75rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+        .ti-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to APIGuardian Dashboard...</p>
+    <div class="container">
+        <h1>API GUARDIAN</h1>
+        <p class="meta">Enterprise API Security Testing Platform • <span id="ws-status" class="disconnected">Connecting...</span></p>
+        
+        <div class="grid">
+            <div class="stat-card total"><div class="label">Total Findings</div><div class="value" id="total">-</div></div>
+            <div class="stat-card critical"><div class="label">Critical</div><div class="value" id="critical">-</div></div>
+            <div class="stat-card high"><div class="label">High</div><div class="value" id="high">-</div></div>
+            <div class="stat-card"><div class="label">Running Scans</div><div class="value" id="running">-</div></div>
+            <div class="stat-card total"><div class="label">Security Score</div><div class="value" id="score">-</div></div>
+        </div>
+        
+        <div class="two-col">
+            <div>
+                <h2>Start New Scan</h2>
+                <div class="panel">
+                    <div class="scan-form">
+                        <input type="text" id="target" placeholder="https://api.example.com" />
+                        <select id="scanType">
+                            <option value="quick">Quick</option>
+                            <option value="full">Full</option>
+                        </select>
+                        <button class="btn" onclick="startScan()">Scan</button>
+                    </div>
+                    <div class="jobs-list" id="jobsList"></div>
+                </div>
+                
+                <h2>Threat Intelligence</h2>
+                <div class="panel">
+                    <div class="ti-form">
+                        <input type="text" id="tiIndicator" placeholder="8.8.8.8" style="flex:1" />
+                        <select id="tiType">
+                            <option value="ip">IP</option>
+                            <option value="url">URL</option>
+                            <option value="hash">Hash</option>
+                        </select>
+                        <select id="tiService">
+                            <option value="virustotal">VirusTotal</option>
+                            <option value="abuseipdb">AbuseIPDB</option>
+                        </select>
+                        <select id="tiMode">
+                            <option value="live">Live</option>
+                            <option value="mock">Mock</option>
+                        </select>
+                        <button class="btn" onclick="lookupTI()">Lookup</button>
+                    </div>
+                    <div class="ti-result" id="tiResult">Results will appear here...</div>
+                </div>
+            </div>
+            
+            <div>
+                <h2>Live Feed</h2>
+                <div class="panel live-feed" id="feed">
+                    <div class="feed-item">Waiting for events...</div>
+                </div>
+                
+                <h2>Plugins</h2>
+                <div class="panel">
+                    <div class="plugins-grid" id="pluginsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api';
+        let ws = null;
+        
+        async function fetchMetrics() {
+            try {
+                const res = await fetch(`${API_BASE}/metrics`);
+                const data = await res.json();
+                document.getElementById('total').textContent = data.findings?.total || 0;
+                document.getElementById('critical').textContent = data.findings?.critical || 0;
+                document.getElementById('high').textContent = data.findings?.high || 0;
+                document.getElementById('running').textContent = data.scans?.running || 0;
+                document.getElementById('score').textContent = data.security_score || 0;
+            } catch(e) { console.error('Metrics error:', e); }
+        }
+        
+        async function fetchJobs() {
+            try {
+                const res = await fetch(`${API_BASE}/jobs`);
+                const jobs = await res.json();
+                const list = document.getElementById('jobsList');
+                if (jobs.length === 0) {
+                    list.innerHTML = '<div class="feed-item">No scans yet</div>';
+                    return;
+                }
+                list.innerHTML = jobs.slice(0, 10).map(job => `
+                    <div class="job-item">
+                        <span class="job-name">${job.name || job.target}</span>
+                        <span class="job-status ${job.status}">${job.status}</span>
+                    </div>
+                `).join('');
+            } catch(e) { console.error('Jobs error:', e); }
+        }
+        
+        async function fetchPlugins() {
+            try {
+                const res = await fetch(`${API_BASE}/plugins`);
+                const plugins = await res.json();
+                const list = document.getElementById('pluginsList');
+                list.innerHTML = plugins.map(p => `
+                    <div class="plugin-item">
+                        <div class="plugin-name">${p.name}</div>
+                        <div class="plugin-desc">${p.description}</div>
+                    </div>
+                `).join('');
+            } catch(e) { console.error('Plugins error:', e); }
+        }
+        
+        async function startScan() {
+            const target = document.getElementById('target').value;
+            const scanType = document.getElementById('scanType').value;
+            if (!target) { alert('Please enter a target URL'); return; }
+            try {
+                const res = await fetch(`${API_BASE}/jobs`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ target, scan_type: scanType })
+                });
+                const data = await res.json();
+                addFeedItem(`[SCAN] Started ${scanType} scan on ${target}`);
+                fetchJobs();
+                fetchMetrics();
+            } catch(e) { console.error('Scan error:', e); alert('Failed to start scan'); }
+        }
+        
+        async function lookupTI() {
+            const indicator = document.getElementById('tiIndicator').value;
+            const type = document.getElementById('tiType').value;
+            const service = document.getElementById('tiService').value;
+            const mode = document.getElementById('tiMode').value;
+            if (!indicator) { alert('Please enter an indicator'); return; }
+            
+            document.getElementById('tiResult').textContent = 'Looking up...';
+            try {
+                const res = await fetch(`${API_BASE}/threatintel/lookup`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ indicator, indicator_type: type, service, mode })
+                });
+                const data = await res.json();
+                document.getElementById('tiResult').textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                console.error('TI error:', e);
+                document.getElementById('tiResult').textContent = 'Lookup failed: ' + e.message;
+            }
+        }
+        
+        function addFeedItem(text) {
+            const feed = document.getElementById('feed');
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            feed.insertBefore(item, feed.firstChild);
+            if (feed.children.length > 50) feed.removeChild(feed.lastChild);
+        }
+        
+        function connectWS() {
+            const wsUrl = `ws://${location.host}/ws/stream`;
+            ws = new WebSocket(wsUrl);
+            ws.onopen = () => {
+                document.getElementById('ws-status').className = 'connected';
+                document.getElementById('ws-status').textContent = 'Connected';
+            };
+            ws.onclose = () => {
+                document.getElementById('ws-status').className = 'disconnected';
+                document.getElementById('ws-status').textContent = 'Disconnected';
+                setTimeout(connectWS, 3000);
+            };
+            ws.onerror = () => {
+                document.getElementById('ws-status').className = 'disconnected';
+                document.getElementById('ws-status').textContent = 'Error';
+            };
+            ws.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    addFeedItem(`[${data.type}] ${data.data?.issue || JSON.stringify(data.data)}`);
+                    fetchMetrics();
+                    fetchJobs();
+                } catch { addFeedItem(e.data); }
+            };
+        }
+        
+        // Initialize
+        fetchMetrics();
+        fetchJobs();
+        fetchPlugins();
+        connectWS();
+        setInterval(fetchMetrics, 5000);
+        setInterval(fetchJobs, 5000);
+    </script>
 </body>
 </html>
