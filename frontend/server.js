@@ -4,30 +4,30 @@ const path = require('path');
 
 const app = express();
 
-// Proxy /api to backend - preserve the /api prefix
-app.use('/api', createProxyMiddleware({
+const backendProxy = createProxyMiddleware({
     target: 'http://localhost:8001',
     changeOrigin: true,
-    pathRewrite: null  // Don't rewrite paths, keep /api prefix
-}));
+    logLevel: 'debug',
+    onProxyReq: (proxyReq, req, res) => {
+        console.log(`Proxying: ${req.method} ${req.url} -> ${proxyReq.path}`);
+    }
+});
 
-// Proxy /ws to backend for WebSocket
-app.use('/ws', createProxyMiddleware({
+const wsProxy = createProxyMiddleware({
     target: 'http://localhost:8001',
     changeOrigin: true,
     ws: true
-}));
+});
 
-// Proxy root health endpoint to backend
-app.use('/health', createProxyMiddleware({
-    target: 'http://localhost:8001',
-    changeOrigin: true
-}));
+// Proxy API routes
+app.use('/api', backendProxy);
+app.use('/ws', wsProxy);
+app.use('/health', backendProxy);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback to index.html for SPA - use regex to avoid path-to-regexp issues
+// Fallback
 app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
