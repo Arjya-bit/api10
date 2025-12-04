@@ -203,9 +203,10 @@ class VirusTotalAdapter(BaseTIAdapter):
     def _determine_threat_level(self, stats: Dict) -> str:
         malicious = stats.get('malicious', 0)
         suspicious = stats.get('suspicious', 0)
-        if malicious >= 5:
+        # More sensitive detection: any malicious flag or 2+ suspicious flags
+        if malicious >= 3:
             return 'malicious'
-        elif malicious >= 1 or suspicious >= 3:
+        elif malicious >= 1 or suspicious >= 2:
             return 'suspicious'
         return 'clean'
 
