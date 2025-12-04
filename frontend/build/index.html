@@ -410,7 +410,7 @@
             const mode = document.getElementById('tiMode').value;
             if (!indicator) { alert('Please enter an indicator'); return; }
             
-            document.getElementById('tiResult').textContent = 'Looking up...';
+            document.getElementById('tiResult').innerHTML = '<div style="color: var(--text-secondary)">Looking up...</div>';
             try {
                 const res = await fetch(`${API_BASE}/threatintel/lookup`, {
                     method: 'POST',
@@ -418,11 +418,132 @@
                     body: JSON.stringify({ indicator, indicator_type: type, service, mode })
                 });
                 const data = await res.json();
-                document.getElementById('tiResult').textContent = JSON.stringify(data, null, 2);
+                displayTIResult(data, indicator, type, service);
             } catch(e) {
                 console.error('TI error:', e);
-                document.getElementById('tiResult').textContent = 'Lookup failed: ' + e.message;
+                document.getElementById('tiResult').innerHTML = `<div style="color: var(--critical)">Lookup failed: ${e.message}</div>`;
             }
+        }
+        
+        function displayTIResult(data, indicator, type, service) {
+            const resultDiv = document.getElementById('tiResult');
+            
+            // Determine verdict based on threat_level
+            const threatLevel = (data.threat_level || 'unknown').toLowerCase();
+            let verdictClass, verdictIcon, verdictLabel, verdictDesc;
+            
+            if (threatLevel === 'clean' || threatLevel === 'safe') {
+                verdictClass = 'clean';
+                verdictIcon = '✓';
+                verdictLabel = 'CLEAN';
+                verdictDesc = 'No threats detected. This indicator appears to be safe.';
+            } else if (threatLevel === 'suspicious' || threatLevel === 'low' || threatLevel === 'medium') {
+                verdictClass = 'suspicious';
+                verdictIcon = '⚠';
+                verdictLabel = 'SUSPICIOUS';
+                verdictDesc = 'Potential threats detected. Exercise caution with this indicator.';
+            } else if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') {
+                verdictClass = 'malicious';
+                verdictIcon = '✕';
+                verdictLabel = 'MALICIOUS';
+                verdictDesc = 'Threats confirmed! This indicator is known to be dangerous.';
+            } else {
+                verdictClass = 'suspicious';
+                verdictIcon = '?';
+                verdictLabel = 'UNKNOWN';
+                verdictDesc = 'Unable to determine threat level. Review raw data below.';
+            }
+            
+            // Build details based on service type
+            let detailsHTML = '';
+            
+            if (service === 'virustotal') {
+                const malicious = data.malicious_count || data.positives || 0;
+                const total = data.total_engines || data.total || 0;
+                const reputation = data.reputation_score !== undefined ? data.reputation_score : 'N/A';
+                
+                detailsHTML = `
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Detections</div>
+                        <div class="ti-detail-value" style="color: ${malicious > 0 ? 'var(--critical)' : 'var(--accent)'}">${malicious} / ${total}</div>
+                    </div>
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Reputation</div>
+                        <div class="ti-detail-value">${reputation}</div>
+                    </div>
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Service</div>
+                        <div class="ti-detail-value">VirusTotal</div>
+                    </div>
+                `;
+            } else if (service === 'abuseipdb') {
+                const abuseScore = data.abuse_confidence_score || data.confidence_score || 0;
+                const reports = data.total_reports || data.reports || 0;
+                const country = data.country_code || data.country || 'N/A';
+                const isp = data.isp || 'N/A';
+                
+                detailsHTML = `
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Abuse Score</div>
+                        <div class="ti-detail-value" style="color: ${abuseScore > 50 ? 'var(--critical)' : abuseScore > 20 ? 'var(--high)' : 'var(--accent)'}">${abuseScore}%</div>
+                    </div>
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Reports</div>
+                        <div class="ti-detail-value">${reports}</div>
+                    </div>
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Country</div>
+                        <div class="ti-detail-value">${country}</div>
+                    </div>
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">ISP</div>
+                        <div class="ti-detail-value">${isp}</div>
+                    </div>
+                `;
+            } else {
+                detailsHTML = `
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Service</div>
+                        <div class="ti-detail-value">${service}</div>
+                    </div>
+                    <div class="ti-detail-item">
+                        <div class="ti-detail-label">Mode</div>
+                        <div class="ti-detail-value">${data.mode || 'live'}</div>
+                    </div>
+                `;
+            }
+            
+            // Add common details
+            detailsHTML += `
+                <div class="ti-detail-item">
+                    <div class="ti-detail-label">Indicator</div>
+                    <div class="ti-detail-value" style="font-size: 0.8rem; word-break: break-all;">${indicator}</div>
+                </div>
+                <div class="ti-detail-item">
+                    <div class="ti-detail-label">Type</div>
+                    <div class="ti-detail-value">${type.toUpperCase()}</div>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = `
+                <div class="ti-verdict ${verdictClass}">
+                    <div class="ti-verdict-icon">${verdictIcon}</div>
+                    <div class="ti-verdict-text">
+                        <div class="ti-verdict-label">${verdictLabel}</div>
+                        <div class="ti-verdict-desc">${verdictDesc}</div>
+                    </div>
+                </div>
+                <div class="ti-details">${detailsHTML}</div>
+                <div class="ti-raw-toggle" onclick="toggleRawData()">Show Raw Data</div>
+                <div class="ti-raw" id="tiRawData">${JSON.stringify(data, null, 2)}</div>
+            `;
+        }
+        
+        function toggleRawData() {
+            const rawDiv = document.getElementById('tiRawData');
+            rawDiv.classList.toggle('show');
+            const toggle = document.querySelector('.ti-raw-toggle');
+            toggle.textContent = rawDiv.classList.contains('show') ? 'Hide Raw Data' : 'Show Raw Data';
         }
         
         function addFeedItem(text) {
