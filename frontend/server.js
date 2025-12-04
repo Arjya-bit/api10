@@ -4,30 +4,26 @@ const path = require('path');
 
 const app = express();
 
-const backendProxy = createProxyMiddleware({
+// Don't use app.use('/api', ...) as it strips the /api prefix
+// Instead, use a filter function that checks the path
+const apiProxy = createProxyMiddleware({
     target: 'http://localhost:8001',
     changeOrigin: true,
-    logLevel: 'debug',
+    // Match any path starting with /api, /ws, or /health
+    pathFilter: ['/api/**', '/ws/**', '/health'],
+    ws: true,
     onProxyReq: (proxyReq, req, res) => {
-        console.log(`Proxying: ${req.method} ${req.url} -> ${proxyReq.path}`);
+        console.log(`Proxy: ${req.method} ${req.originalUrl}`);
     }
 });
 
-const wsProxy = createProxyMiddleware({
-    target: 'http://localhost:8001',
-    changeOrigin: true,
-    ws: true
-});
-
-// Proxy API routes
-app.use('/api', backendProxy);
-app.use('/ws', wsProxy);
-app.use('/health', backendProxy);
+// Use the proxy for matching routes
+app.use(apiProxy);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Fallback
+// Fallback to index.html for SPA
 app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
