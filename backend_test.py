@@ -723,7 +723,7 @@ class APIGuardianTester:
     
     def run_all_tests(self):
         """Run all API tests"""
-        print("🚀 Starting APIGuardian Backend API Tests")
+        print("🚀 Starting APIGuardian Backend API Tests - Phase B & C Features")
         print("=" * 60)
         
         # Core endpoints
@@ -734,6 +734,31 @@ class APIGuardianTester:
         # API endpoints
         self.test_api_metrics()
         self.test_plugins_list()
+        
+        # ===== PHASE B & C TESTS =====
+        print("\n🔥 Testing Phase B & C Features...")
+        
+        # Test new plugins presence (12+ plugins expected)
+        self.test_new_plugins_presence()
+        
+        # Plugin management tests
+        self.test_plugin_details()
+        self.test_plugin_toggle()
+        self.test_plugin_run()
+        
+        # Workflow management tests
+        self.test_workflow_templates()
+        workflows = self.test_workflows_list()
+        workflow_id = self.test_create_workflow()
+        
+        # Wait for workflow to start and check status
+        if workflow_id:
+            time.sleep(3)  # Give workflow time to start
+            self.test_workflow_status(workflow_id)
+        else:
+            self.test_workflow_status("test-workflow-id-123")
+        
+        print("\n📊 Testing Existing Features...")
         
         # Jobs and scans
         jobs = self.test_jobs_list()
