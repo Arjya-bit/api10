@@ -460,18 +460,123 @@
             } catch(e) { console.error('Jobs error:', e); }
         }
         
+        let pluginsData = [];
+        let selectedWorkflow = 'quick_scan';
+        
         async function fetchPlugins() {
             try {
                 const res = await fetch(`${API_BASE}/plugins`);
-                const plugins = await res.json();
-                const list = document.getElementById('pluginsList');
-                list.innerHTML = plugins.map(p => `
-                    <div class="plugin-item">
-                        <div class="plugin-name">${p.name}</div>
-                        <div class="plugin-desc">${p.description}</div>
+                pluginsData = await res.json();
+                renderPlugins();
+            } catch(e) { console.error('Plugins error:', e); }
+        }
+        
+        function renderPlugins() {
+            const list = document.getElementById('pluginsList');
+            list.innerHTML = pluginsData.map(p => `
+                <div class="plugin-item ${p.enabled ? '' : 'disabled'}" id="plugin-${p.type}-${p.name}">
+                    <div class="plugin-header">
+                        <span class="plugin-name">${p.name}</span>
+                        <span class="plugin-type">${p.type}</span>
+                    </div>
+                    <div class="plugin-desc">${p.description}</div>
+                    <div class="plugin-actions">
+                        <button class="plugin-btn run" onclick="runPlugin('${p.type}', '${p.name}')">Run</button>
+                        <button class="plugin-btn toggle ${p.enabled ? 'enabled' : ''}" onclick="togglePlugin('${p.type}', '${p.name}', ${!p.enabled})">
+                            ${p.enabled ? 'Enabled' : 'Disabled'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function runPlugin(pluginType, pluginName) {
+            const target = document.getElementById('target').value || document.getElementById('workflowTarget').value;
+            if (!target) {
+                alert('Please enter a target URL first');
+                return;
+            }
+            
+            try {
+                addFeedItem(`[PLUGIN] Running ${pluginName} on ${target}...`);
+                const res = await fetch(`${API_BASE}/plugins/${pluginType}/${pluginName}/run`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ target, config: {} })
+                });
+                const data = await res.json();
+                addFeedItem(`[PLUGIN] ${pluginName} started`);
+            } catch(e) {
+                console.error('Plugin run error:', e);
+                addFeedItem(`[ERROR] Failed to run ${pluginName}`);
+            }
+        }
+        
+        async function togglePlugin(pluginType, pluginName, enabled) {
+            try {
+                const res = await fetch(`${API_BASE}/plugins/${pluginType}/${pluginName}/toggle`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ enabled })
+                });
+                const data = await res.json();
+                
+                // Update local state
+                const plugin = pluginsData.find(p => p.type === pluginType && p.name === pluginName);
+                if (plugin) plugin.enabled = enabled;
+                renderPlugins();
+                
+                addFeedItem(`[CONFIG] ${pluginName} ${enabled ? 'enabled' : 'disabled'}`);
+            } catch(e) {
+                console.error('Toggle error:', e);
+            }
+        }
+        
+        async function fetchWorkflowTemplates() {
+            try {
+                const res = await fetch(`${API_BASE}/workflows/templates`);
+                const templates = await res.json();
+                const container = document.getElementById('workflowTemplates');
+                container.innerHTML = templates.map(t => `
+                    <div class="workflow-template ${t.id === selectedWorkflow ? 'active' : ''}" 
+                         onclick="selectWorkflow('${t.id}')" title="${t.description}">
+                        ${t.name}
                     </div>
                 `).join('');
-            } catch(e) { console.error('Plugins error:', e); }
+            } catch(e) { console.error('Workflows error:', e); }
+        }
+        
+        function selectWorkflow(templateId) {
+            selectedWorkflow = templateId;
+            document.querySelectorAll('.workflow-template').forEach(el => {
+                el.classList.toggle('active', el.textContent.includes(templateId));
+            });
+            fetchWorkflowTemplates();
+        }
+        
+        async function startWorkflow() {
+            const target = document.getElementById('workflowTarget').value;
+            if (!target) {
+                alert('Please enter a target URL');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/workflows`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        template: selectedWorkflow,
+                        target: target
+                    })
+                });
+                const data = await res.json();
+                addFeedItem(`[WORKFLOW] Started ${selectedWorkflow} workflow on ${target}`);
+                fetchJobs();
+            } catch(e) {
+                console.error('Workflow error:', e);
+                alert('Failed to start workflow');
+            }
         }
         
         async function startScan() {
