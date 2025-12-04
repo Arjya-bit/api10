@@ -322,6 +322,318 @@ class GoogleSafeBrowsingAdapter(BaseTIAdapter):
     def _mock_hash_lookup(self, h: str) -> Dict: return {'service': self.service_name, 'note': 'stub'}
 
 
+class OTXAdapter(BaseTIAdapter):
+    """AlienVault OTX (Open Threat Exchange) adapter"""
+    
+    service_name = "otx"
+    api_key_env = "OTX_API_KEY"
+    
+    def _mock_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': ip,
+            'type': 'ip',
+            'pulse_count': 0,
+            'reputation': 0,
+            'country': 'US',
+            'asn': 'AS15169 Google LLC',
+            'threat_level': 'clean',
+            'malware_samples': 0,
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _mock_url_lookup(self, url: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': url,
+            'type': 'url',
+            'pulse_count': 0,
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _mock_hash_lookup(self, file_hash: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': file_hash,
+            'type': 'hash',
+            'pulse_count': 0,
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _live_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        """Live OTX IP lookup"""
+        import httpx
+        try:
+            # Get general info
+            response = httpx.get(
+                f"https://otx.alienvault.com/api/v1/indicators/IPv4/{ip}/general",
+                headers={"X-OTX-API-KEY": self.api_key},
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                pulse_count = data.get('pulse_info', {}).get('count', 0)
+                reputation = data.get('reputation', 0)
+                
+                # Determine threat level based on pulse count and reputation
+                if pulse_count >= 10 or reputation >= 3:
+                    threat_level = 'malicious'
+                elif pulse_count >= 3 or reputation >= 1:
+                    threat_level = 'suspicious'
+                else:
+                    threat_level = 'clean'
+                
+                return {
+                    'service': self.service_name,
+                    'indicator': ip,
+                    'type': 'ip',
+                    'pulse_count': pulse_count,
+                    'reputation': reputation,
+                    'country': data.get('country_name'),
+                    'country_code': data.get('country_code'),
+                    'asn': data.get('asn'),
+                    'city': data.get('city'),
+                    'threat_level': threat_level,
+                    'validation': data.get('validation', []),
+                    'sections': data.get('sections', []),
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+        except Exception as e:
+            logger.error(f"OTX IP lookup failed: {e}")
+        return self._mock_ip_lookup(ip)
+    
+    def _live_url_lookup(self, url: str) -> Dict[str, Any]:
+        """Live OTX URL lookup"""
+        import httpx
+        import urllib.parse
+        try:
+            # URL encode the indicator
+            encoded_url = urllib.parse.quote(url, safe='')
+            response = httpx.get(
+                f"https://otx.alienvault.com/api/v1/indicators/url/{encoded_url}/general",
+                headers={"X-OTX-API-KEY": self.api_key},
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                pulse_count = data.get('pulse_info', {}).get('count', 0)
+                
+                threat_level = 'malicious' if pulse_count >= 5 else 'suspicious' if pulse_count >= 1 else 'clean'
+                
+                return {
+                    'service': self.service_name,
+                    'indicator': url,
+                    'type': 'url',
+                    'pulse_count': pulse_count,
+                    'threat_level': threat_level,
+                    'alexa': data.get('alexa'),
+                    'whois': data.get('whois'),
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+        except Exception as e:
+            logger.error(f"OTX URL lookup failed: {e}")
+        return self._mock_url_lookup(url)
+    
+    def _live_hash_lookup(self, file_hash: str) -> Dict[str, Any]:
+        """Live OTX hash lookup"""
+        import httpx
+        try:
+            hash_type = 'FileHash-SHA256' if len(file_hash) == 64 else 'FileHash-MD5' if len(file_hash) == 32 else 'FileHash-SHA1'
+            response = httpx.get(
+                f"https://otx.alienvault.com/api/v1/indicators/{hash_type}/{file_hash}/general",
+                headers={"X-OTX-API-KEY": self.api_key},
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                pulse_count = data.get('pulse_info', {}).get('count', 0)
+                
+                threat_level = 'malicious' if pulse_count >= 3 else 'suspicious' if pulse_count >= 1 else 'clean'
+                
+                return {
+                    'service': self.service_name,
+                    'indicator': file_hash,
+                    'type': 'hash',
+                    'pulse_count': pulse_count,
+                    'threat_level': threat_level,
+                    'malware_families': data.get('malware_families', []),
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+        except Exception as e:
+            logger.error(f"OTX hash lookup failed: {e}")
+        return self._mock_hash_lookup(file_hash)
+
+
+class PulseDiveAdapter(BaseTIAdapter):
+    """PulseDive threat intelligence adapter"""
+    
+    service_name = "pulsedive"
+    api_key_env = "PULSEDIVE_API_KEY"
+    
+    def _mock_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': ip,
+            'type': 'ip',
+            'risk': 'none',
+            'risk_score': 0,
+            'threats': [],
+            'feeds': [],
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _mock_url_lookup(self, url: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': url,
+            'type': 'url',
+            'risk': 'none',
+            'risk_score': 0,
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _mock_hash_lookup(self, file_hash: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': file_hash,
+            'type': 'hash',
+            'risk': 'none',
+            'risk_score': 0,
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _live_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        """Live PulseDive IP lookup"""
+        import httpx
+        try:
+            response = httpx.get(
+                "https://pulsedive.com/api/info.php",
+                params={
+                    "indicator": ip,
+                    "key": self.api_key,
+                    "pretty": "1"
+                },
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if error
+                if 'error' in data:
+                    logger.warning(f"PulseDive returned error: {data.get('error')}")
+                    return self._mock_ip_lookup(ip)
+                
+                risk = data.get('risk', 'unknown')
+                risk_factors = data.get('riskfactors', [])
+                threats = data.get('threats', [])
+                feeds = data.get('feeds', [])
+                
+                # Determine threat level
+                if risk == 'critical' or risk == 'high' or len(threats) > 0:
+                    threat_level = 'malicious'
+                elif risk == 'medium' or len(risk_factors) > 0:
+                    threat_level = 'suspicious'
+                else:
+                    threat_level = 'clean'
+                
+                return {
+                    'service': self.service_name,
+                    'indicator': ip,
+                    'type': 'ip',
+                    'risk': risk,
+                    'risk_factors': [rf.get('description') for rf in risk_factors] if risk_factors else [],
+                    'threats': [t.get('name') for t in threats] if threats else [],
+                    'feeds': [f.get('name') for f in feeds] if feeds else [],
+                    'threat_level': threat_level,
+                    'stamp_seen': data.get('stamp_seen'),
+                    'stamp_updated': data.get('stamp_updated'),
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+        except Exception as e:
+            logger.error(f"PulseDive IP lookup failed: {e}")
+        return self._mock_ip_lookup(ip)
+    
+    def _live_url_lookup(self, url: str) -> Dict[str, Any]:
+        """Live PulseDive URL lookup"""
+        import httpx
+        try:
+            response = httpx.get(
+                "https://pulsedive.com/api/info.php",
+                params={
+                    "indicator": url,
+                    "key": self.api_key,
+                    "pretty": "1"
+                },
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    return self._mock_url_lookup(url)
+                
+                risk = data.get('risk', 'unknown')
+                threats = data.get('threats', [])
+                
+                if risk == 'critical' or risk == 'high' or len(threats) > 0:
+                    threat_level = 'malicious'
+                elif risk == 'medium':
+                    threat_level = 'suspicious'
+                else:
+                    threat_level = 'clean'
+                
+                return {
+                    'service': self.service_name,
+                    'indicator': url,
+                    'type': 'url',
+                    'risk': risk,
+                    'threats': [t.get('name') for t in threats] if threats else [],
+                    'threat_level': threat_level,
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+        except Exception as e:
+            logger.error(f"PulseDive URL lookup failed: {e}")
+        return self._mock_url_lookup(url)
+    
+    def _live_hash_lookup(self, file_hash: str) -> Dict[str, Any]:
+        """Live PulseDive hash lookup"""
+        import httpx
+        try:
+            response = httpx.get(
+                "https://pulsedive.com/api/info.php",
+                params={
+                    "indicator": file_hash,
+                    "key": self.api_key,
+                    "pretty": "1"
+                },
+                timeout=30
+            )
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    return self._mock_hash_lookup(file_hash)
+                
+                risk = data.get('risk', 'unknown')
+                
+                return {
+                    'service': self.service_name,
+                    'indicator': file_hash,
+                    'type': 'hash',
+                    'risk': risk,
+                    'threat_level': 'malicious' if risk in ['critical', 'high'] else 'suspicious' if risk == 'medium' else 'clean',
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+        except Exception as e:
+            logger.error(f"PulseDive hash lookup failed: {e}")
+        return self._mock_hash_lookup(file_hash)
+
+
 # Adapter registry
 ADAPTERS = {
     'virustotal': VirusTotalAdapter,
