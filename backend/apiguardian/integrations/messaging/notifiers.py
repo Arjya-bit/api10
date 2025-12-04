@@ -51,6 +51,7 @@ class SlackNotifier(BaseNotifier):
     
     def __init__(self, mode: str = "mock", config: Dict[str, Any] = None):
         super().__init__(mode, config)
+        config = config or {}
         self.webhook_url = config.get('webhook_url') or os.environ.get('SLACK_WEBHOOK_URL')
         
     def send_alert(self, title: str, message: str, severity: str = "info", details: Dict = None) -> bool:
