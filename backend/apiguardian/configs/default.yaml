@@ -1,0 +1,89 @@
+# APIGuardian Default Configuration
+
+target: ""
+modules:
+  - all
+
+# Safety settings
+enable_destructive: false
+
+# Scan settings
+timeout: 300
+max_concurrent: 5
+rate_limit: 0.1  # seconds between requests
+
+# Report settings
+report_format:
+  - json
+  - html
+report_dir: reports
+
+# Recon settings
+recon:
+  probe_common_paths: true
+  timeout: 2
+  paths:
+    - /openapi.json
+    - /swagger.json
+    - /.well-known/openapi
+    - /api-docs
+    - /v1/openapi.json
+    - /v2/openapi.json
+
+# Analyzer settings
+analyzers:
+  jwt:
+    enabled: true
+    check_expiry: true
+    check_algorithm: true
+    weak_algorithms:
+      - none
+      - HS256
+  
+  idor:
+    enabled: true
+    id_variations: 5
+    test_ids:
+      - "1"
+      - "0"
+      - "-1"
+      - "999999"
+      - "admin"
+
+# Fuzzer settings
+fuzzers:
+  payload:
+    enabled: true
+    max_payloads: 100
+    payload_files:
+      - sqli.txt
+      - xss.txt
+      - lfi.txt
+
+# Threat Intel settings
+threat_intel:
+  cache_ttl: 3600  # seconds
+  services:
+    virustotal:
+      enabled: true
+      mode: mock
+      api_key_env: VIRUSTOTAL_API_KEY
+    abuseipdb:
+      enabled: true
+      mode: mock
+      api_key_env: ABUSEIPDB_API_KEY
+    urlhaus:
+      enabled: false
+      mode: mock
+    phishtank:
+      enabled: false
+      mode: mock
+
+# Alerting settings
+alerting:
+  slack:
+    enabled: false
+    webhook_env: SLACK_WEBHOOK_URL
+  email:
+    enabled: false
+    smtp_host_env: SMTP_HOST
