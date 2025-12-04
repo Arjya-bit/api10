@@ -1,89 +1,52 @@
 # APIGuardian Default Configuration
 
+# Target configuration
 target: ""
+
+# Modules to run
 modules:
   - all
 
 # Safety settings
 enable_destructive: false
 
-# Scan settings
+# Timeouts
 timeout: 300
+request_timeout: 30
+
+# Concurrency
 max_concurrent: 5
-rate_limit: 0.1  # seconds between requests
+
+# Rate limiting (seconds between requests)
+rate_limit: 0.1
 
 # Report settings
 report_format:
   - json
   - html
-report_dir: reports
-
-# Recon settings
-recon:
-  probe_common_paths: true
-  timeout: 2
-  paths:
-    - /openapi.json
-    - /swagger.json
-    - /.well-known/openapi
-    - /api-docs
-    - /v1/openapi.json
-    - /v2/openapi.json
-
-# Analyzer settings
-analyzers:
-  jwt:
-    enabled: true
-    check_expiry: true
-    check_algorithm: true
-    weak_algorithms:
-      - none
-      - HS256
-  
-  idor:
-    enabled: true
-    id_variations: 5
-    test_ids:
-      - "1"
-      - "0"
-      - "-1"
-      - "999999"
-      - "admin"
+report_dir: /app/backend/reports
 
 # Fuzzer settings
 fuzzers:
   payload:
-    enabled: true
     max_payloads: 100
-    payload_files:
-      - sqli.txt
-      - xss.txt
-      - lfi.txt
+    include_sqli: true
+    include_xss: true
+    include_lfi: true
 
-# Threat Intel settings
-threat_intel:
-  cache_ttl: 3600  # seconds
-  services:
-    virustotal:
-      enabled: true
-      mode: mock
-      api_key_env: VIRUSTOTAL_API_KEY
-    abuseipdb:
-      enabled: true
-      mode: mock
-      api_key_env: ABUSEIPDB_API_KEY
-    urlhaus:
-      enabled: false
-      mode: mock
-    phishtank:
-      enabled: false
-      mode: mock
+# Logging
+log_level: INFO
+log_json: false
 
-# Alerting settings
-alerting:
-  slack:
-    enabled: false
-    webhook_env: SLACK_WEBHOOK_URL
-  email:
-    enabled: false
-    smtp_host_env: SMTP_HOST
+# Database
+database:
+  path: /app/backend/apiguardian.db
+
+# Integrations (mock by default)
+integrations:
+  threat_intel:
+    default_mode: mock
+  siem:
+    default_mode: mock
+  messaging:
+    default_mode: mock

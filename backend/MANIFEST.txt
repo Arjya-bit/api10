@@ -1,0 +1,83 @@
+# APIGuardian - Enterprise API Security Testing Platform
+# Version: 1.0.0
+# Manifest generated: 2025
+
+## Project Structure
+
+apiguardian/                    # Main Python package
+├── __init__.py                 # Package initialization
+├── core/                       # Core components
+│   ├── engine.py               # Main scan orchestration engine
+│   ├── models.py               # SQLAlchemy database models
+│   ├── event_bus.py            # Pub/Sub event system
+│   ├── plugin_manager.py       # Plugin discovery and management
+│   ├── scheduler.py            # Cron-like job scheduler
+│   └── workflow_manager.py     # Scan workflow management
+├── modules/                    # Security testing modules (plugins)
+│   ├── analyzers/              # Security analyzers
+│   │   ├── jwt_analyzer.py     # JWT token analysis
+│   │   ├── idor_detector.py    # IDOR vulnerability detection
+│   │   └── rate_limit_analyzer.py
+│   ├── fuzzers/                # Payload fuzzers
+│   │   └── payload_fuzzer.py   # Injection payload testing
+│   └── recon/                  # Reconnaissance modules
+│       ├── openapi_scanner.py  # OpenAPI spec discovery
+│       └── endpoint_discovery.py
+├── integrations/               # External integrations
+│   ├── threatintel/            # Threat intelligence adapters
+│   │   └── adapters.py         # VirusTotal, AbuseIPDB, etc.
+│   ├── siem/                   # SIEM connectors
+│   │   └── connectors.py       # Splunk, Elastic, QRadar
+│   └── messaging/              # Alert notifiers
+│       └── notifiers.py        # Slack, Teams, Email
+├── reports/                    # Report generators
+│   ├── json_reporter.py        # JSON report format
+│   ├── html_reporter.py        # HTML report with Jinja2
+│   └── pdf_reporter.py         # PDF report (stub)
+├── utils/                      # Utility functions
+│   ├── __init__.py             # Logging, atomic writes, etc.
+│   └── http_client.py          # Async HTTP client with retry
+├── web/                        # Web dashboard
+│   └── api.py                  # FastAPI application
+├── data/                       # Static data files
+│   ├── payloads/               # Fuzzing payload files
+│   ├── samples/                # Sample API specs
+│   └── schemas/                # JSON schemas
+└── configs/                    # Configuration files
+    └── default.yaml            # Default configuration
+
+## Key Files
+
+server.py                       # Main entry point for uvicorn
+requirements.txt                # Python dependencies
+SECRETS.env.example             # API keys template
+MANIFEST.txt                    # This file
+RUNBOOK.md                      # Operations runbook
+
+## Database
+
+apiguardian.db                  # SQLite database (auto-created)
+
+## API Endpoints
+
+GET  /                          # Web dashboard (HTML)
+GET  /health                    # Health check
+GET  /metrics                   # Prometheus metrics
+GET  /api/metrics               # Dashboard metrics (JSON)
+GET  /api/jobs                  # List scan jobs
+POST /api/jobs                  # Start new scan
+GET  /api/jobs/{id}             # Get job status
+GET  /api/findings              # List findings
+GET  /api/findings/{id}         # Get finding details
+PATCH /api/findings/{id}        # Update finding status
+GET  /api/assets                # List assets
+POST /api/assets                # Add asset
+GET  /api/plugins               # List available plugins
+GET  /api/scheduler/jobs        # List scheduled jobs
+POST /api/scheduler/jobs        # Schedule new job
+DELETE /api/scheduler/jobs/{id} # Remove scheduled job
+POST /api/threatintel/lookup    # Threat intel lookup
+GET  /api/threatintel/services  # List TI services
+GET  /api/integrations          # List all integrations
+POST /api/integrations/test/{type}/{name}  # Test integration
+WS   /ws/stream                 # WebSocket for live updates
