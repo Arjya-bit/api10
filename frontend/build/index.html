@@ -666,15 +666,6 @@
             }
         }
         
-        async function fetchPluginResults() {
-            try {
-                const res = await fetch(`${API_BASE}/findings?limit=20`);
-                const findings = await res.json();
-                displayPluginFindings(findings);
-                fetchMetrics();
-            } catch(e) { console.error('Results error:', e); }
-        }
-        
         function displayPluginFindings(findings, pluginName, target) {
             const resultsDiv = document.getElementById('pluginResults');
             if (!findings || findings.length === 0) {
