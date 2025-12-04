@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APIGuardian - API Security Platform</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #eee;
+            --text-secondary: #888;
+            --accent: #00ff94;
+            --critical: #ff2a6d;
+            --high: #ff9f1c;
+            --medium: #f1c40f;
+            --low: #3498db;
+            --info: #5865f2;
+            --border: #333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+        h1 { color: var(--accent); font-size: 1.75rem; font-family: monospace; }
+        h2 { color: var(--text-primary); font-size: 1rem; margin: 1.5rem 0 0.75rem; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; }
+        .meta { color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1.5rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; }
+        .stat-card .label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-secondary); }
+        .stat-card .value { font-size: 1.75rem; font-weight: bold; font-family: monospace; }
+        .stat-card.critical .value { color: var(--critical); }
+        .stat-card.high .value { color: var(--high); }
+        .stat-card.medium .value { color: var(--medium); }
+        .stat-card.low .value { color: var(--low); }
+        .stat-card.total .value { color: var(--accent); }
+        .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .tab { padding: 0.75rem 1.5rem; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.85rem; font-family: monospace; text-transform: uppercase; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .tab:hover { color: var(--text-primary); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+        .form-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        input, select { padding: 0.5rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-size: 0.85rem; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+        .btn { padding: 0.5rem 1.25rem; background: var(--accent); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn.small { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
+        .severity { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .severity.critical { background: rgba(255,42,109,0.2); color: var(--critical); }
+        .severity.high { background: rgba(255,159,28,0.2); color: var(--high); }
+        .severity.medium { background: rgba(241,196,15,0.2); color: var(--medium); }
+        .severity.low { background: rgba(52,152,219,0.2); color: var(--low); }
+        .severity.info { background: rgba(88,101,242,0.2); color: var(--info); }
+        .results-container { display: grid; grid-template-columns: 300px 1fr; gap: 1rem; min-height: 500px; }
+        @media (max-width: 900px) { .results-container { grid-template-columns: 1fr; } }
+        .plugin-list { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .plugin-list-header { padding: 0.75rem 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: bold; }
+        .plugin-list-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        .plugin-list-item:hover { background: var(--bg-tertiary); }
+        .plugin-list-item.active { background: var(--bg-tertiary); border-left: 3px solid var(--accent); }
+        .plugin-list-item .name { font-family: monospace; font-size: 0.85rem; }
+        .plugin-list-item .type { font-size: 0.65rem; color: var(--text-secondary); }
+        .plugin-list-item .status { width: 8px; height: 8px; border-radius: 50%; background: var(--text-secondary); }
+        .plugin-list-item .status.running { background: var(--accent); animation: pulse 1s infinite; }
+        .plugin-list-item .status.completed { background: var(--accent); }
+        .plugin-list-item .status.failed { background: var(--critical); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .results-panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .results-header { padding: 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .results-header h3 { font-family: monospace; font-size: 1rem; color: var(--accent); }
+        .results-body { padding: 1rem; max-height: 600px; overflow-y: auto; }
+        .finding-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.75rem; overflow: hidden; }
+        .finding-card.critical { border-left: 3px solid var(--critical); }
+        .finding-card.high { border-left: 3px solid var(--high); }
+        .finding-card.medium { border-left: 3px solid var(--medium); }
+        .finding-card.low { border-left: 3px solid var(--low); }
+        .finding-card.info { border-left: 3px solid var(--info); }
+        .finding-header { padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
+        .finding-header:hover { background: rgba(255,255,255,0.02); }
+        .finding-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 0.25rem; }
+        .finding-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+        .finding-details { display: none; padding: 0.75rem 1rem; border-top: 1px solid var(--border); background: var(--bg-primary); }
+        .finding-details.open { display: block; }
+        .finding-details dt { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.5rem; }
+        .finding-details dd { font-size: 0.85rem; margin-top: 0.25rem; font-family: monospace; word-break: break-word; }
+        .workflow-progress { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+        .workflow-step { flex: 1; min-width: 120px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; text-align: center; }
+        .workflow-step.completed { border-color: var(--accent); }
+        .workflow-step.running { border-color: var(--accent); animation: pulse 1s infinite; }
+        .workflow-step.failed { border-color: var(--critical); }
+        .workflow-step .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--border); color: var(--text-primary); font-size: 0.75rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; }
+        .workflow-step.completed .step-num, .workflow-step.running .step-num { background: var(--accent); color: #000; }
+        .workflow-step .step-name { font-size: 0.75rem; font-family: monospace; }
+        .workflow-step .step-findings { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem; }
+        .ti-verdict { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .ti-verdict.clean { background: rgba(0,255,148,0.1); border: 1px solid var(--accent); }
+        .ti-verdict.suspicious { background: rgba(255,159,28,0.1); border: 1px solid var(--high); }
+        .ti-verdict.malicious { background: rgba(255,42,109,0.1); border: 1px solid var(--critical); }
+        .ti-verdict-icon { font-size: 2rem; }
+        .ti-verdict-label { font-size: 1.25rem; font-weight: bold; text-transform: uppercase; }
+        .ti-verdict.clean .ti-verdict-label { color: var(--accent); }
+        .ti-verdict.suspicious .ti-verdict-label { color: var(--high); }
+        .ti-verdict.malicious .ti-verdict-label { color: var(--critical); }
+        .ti-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+        .ti-detail { background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px; }
+        .ti-detail-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; }
+        .ti-detail-value { font-size: 1rem; font-weight: bold; margin-top: 0.25rem; }
+        .live-feed { max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; }
+        .feed-item { padding: 0.5rem; border-bottom: 1px solid var(--border); }
+        .feed-item .time { color: var(--text-secondary); }
+        .feed-item .type { color: var(--accent); }
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
+        .status-dot.connected { background: var(--accent); }
+        .status-dot.disconnected { background: var(--critical); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>API GUARDIAN</h1>
+                <p class="meta">Enterprise API Security Testing Platform • <span class="status-dot" id="ws-dot"></span><span id="ws-status">Connecting...</span></p>
+            </div>
+            <div><input type="text" id="globalTarget" placeholder="https://api.example.com" style="width: 300px" /></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card total"><div class="label">Total Findings</div><div class="value" id="total">0</div></div>
+            <div class="stat-card critical"><div class="label">Critical</div><div class="value" id="critical">0</div></div>
+            <div class="stat-card high"><div class="label">High</div><div class="value" id="high">0</div></div>
+            <div class="stat-card medium"><div class="label">Medium</div><div class="value" id="medium">0</div></div>
+            <div class="stat-card low"><div class="label">Low/Info</div><div class="value" id="low">0</div></div>
+            <div class="stat-card total"><div class="label">Security Score</div><div class="value" id="score">100</div></div>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('plugins')">Security Plugins</button>
+            <button class="tab" onclick="showTab('workflows')">Workflows</button>
+            <button class="tab" onclick="showTab('findings')">All Findings</button>
+            <button class="tab" onclick="showTab('threatintel')">Threat Intel</button>
+            <button class="tab" onclick="showTab('live')">Live Feed</button>
+        </div>
+        <div id="tab-plugins" class="tab-content active">
+            <div class="results-container">
+                <div class="plugin-list">
+                    <div class="plugin-list-header">Available Plugins</div>
+                    <div id="pluginsList"></div>
+                </div>
+                <div class="results-panel">
+                    <div class="results-header">
+                        <h3 id="selectedPluginName">Select a Plugin</h3>
+                        <div><button class="btn small" id="runPluginBtn" onclick="runSelectedPlugin()" disabled>Run Plugin</button></div>
+                    </div>
+                    <div class="results-body" id="pluginResults">
+                        <div class="empty-state"><div class="icon">🔍</div><p>Select a plugin from the list and click "Run Plugin" to see results</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="tab-workflows" class="tab-content">
+            <div class="panel">
+                <h2 style="margin-top: 0;">Workflow Templates</h2>
+                <div class="form-row">
+                    <select id="workflowTemplate" style="flex: 1;">
+                        <option value="quick_scan">Quick Security Scan (3 steps)</option>
+                        <option value="full_scan">Full Security Assessment (10 steps)</option>
+                        <option value="api_pentest">API Penetration Test (7 steps)</option>
+                        <option value="compliance_check">Compliance Check (4 steps)</option>
+                    </select>
+                    <button class="btn" onclick="startWorkflow()">Start Workflow</button>
+                </div>
+            </div>
+            <div id="workflowResults"><div class="empty-state"><div class="icon">⚡</div><p>Select a workflow template and click "Start Workflow" to begin</p></div></div>
+        </div>
+        <div id="tab-findings" class="tab-content">
+            <div class="form-row">
+                <select id="severityFilter" onchange="fetchFindings()">
+                    <option value="">All Severities</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                    <option value="info">Info</option>
+                </select>
+                <button class="btn secondary" onclick="fetchFindings()">Refresh</button>
+            </div>
+            <div id="findingsList"></div>
+        </div>
+        <div id="tab-threatintel" class="tab-content">
+            <div class="panel">
+                <div class="form-row">
+                    <input type="text" id="tiIndicator" placeholder="IP, URL, or Hash" style="flex: 1;" />
+                    <select id="tiType"><option value="ip">IP Address</option><option value="url">URL</option><option value="hash">File Hash</option></select>
+                    <select id="tiService"><option value="virustotal">VirusTotal</option><option value="abuseipdb">AbuseIPDB</option><option value="otx">AlienVault OTX</option><option value="pulsedive">PulseDive</option></select>
+                    <select id="tiMode"><option value="live">Live</option><option value="mock">Mock</option></select>
+                    <button class="btn" onclick="lookupTI()">Lookup</button>
+                </div>
+            </div>
+            <div id="tiResults"><div class="empty-state"><div class="icon">🌐</div><p>Enter an indicator and click "Lookup" to check threat intelligence</p></div></div>
+        </div>
+        <div id="tab-live" class="tab-content">
+            <div class="panel"><div class="live-feed" id="liveFeed"><div class="feed-item"><span class="time">[--:--:--]</span> Waiting for events...</div></div></div>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '/api';
+        const WS_PROTOCOL = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let ws = null, plugins = [], selectedPlugin = null, allFindings = [], currentWorkflow = null, pluginResults = {};
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            if (tabName === 'findings') fetchFindings();
+        }
+        
+        async function fetchMetrics() {
+            try {
+                const res = await fetch(`${API_BASE}/metrics`);
+                const data = await res.json();
+                document.getElementById('total').textContent = data.findings?.total || 0;
+                document.getElementById('critical').textContent = data.findings?.critical || 0;
+                document.getElementById('high').textContent = data.findings?.high || 0;
+                document.getElementById('medium').textContent = (data.findings?.total || 0) - (data.findings?.critical || 0) - (data.findings?.high || 0);
+                document.getElementById('low').textContent = 0;
+                document.getElementById('score').textContent = data.security_score || 100;
+            } catch(e) { console.error('Metrics error:', e); }
+        }
+        
+        async function fetchPlugins() {
+            try {
+                const res = await fetch(`${API_BASE}/plugins`);
+                plugins = await res.json();
+                renderPluginsList();
+            } catch(e) { console.error('Plugins error:', e); }
+        }
+        
+        function renderPluginsList() {
+            const list = document.getElementById('pluginsList');
+            const grouped = plugins.reduce((acc, p) => { if (!acc[p.type]) acc[p.type] = []; acc[p.type].push(p); return acc; }, {});
+            let html = '';
+            for (const [type, items] of Object.entries(grouped)) {
+                html += `<div class="plugin-list-header" style="background: var(--bg-primary); font-size: 0.7rem; color: var(--accent);">${type.toUpperCase()}S</div>`;
+                for (const p of items) {
+                    html += `<div class="plugin-list-item ${selectedPlugin?.name === p.name ? 'active' : ''}" onclick="selectPlugin('${p.type}', '${p.name}')"><div><div class="name">${p.name}</div><div class="type">${p.description.slice(0, 40)}...</div></div><div class="status ${p.status || ''}"></div></div>`;
+                }
+            }
+            list.innerHTML = html;
+        }
+        
+        function selectPlugin(type, name) {
+            selectedPlugin = plugins.find(p => p.type === type && p.name === name);
+            document.getElementById('selectedPluginName').textContent = selectedPlugin.name;
+            document.getElementById('runPluginBtn').disabled = false;
+            renderPluginsList();
+            document.getElementById('pluginResults').innerHTML = `<div style="padding: 1rem;"><h3 style="color: var(--accent); margin-bottom: 0.5rem;">${selectedPlugin.name}</h3><p style="color: var(--text-secondary); margin-bottom: 1rem;">${selectedPlugin.description}</p><div style="display: flex; gap: 1rem; font-size: 0.85rem;"><span><strong>Type:</strong> ${selectedPlugin.type}</span><span><strong>Version:</strong> ${selectedPlugin.version}</span></div><p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.85rem;">Enter a target URL above and click "Run Plugin" to execute.</p></div>`;
+        }
+        
+        async function runSelectedPlugin() {
+            const target = document.getElementById('globalTarget').value;
+            if (!target) { alert('Please enter a target URL'); return; }
+            if (!selectedPlugin) { alert('Please select a plugin'); return; }
+            document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Running ${selectedPlugin.name} against ${target}...</p></div>`;
+            const plugin = plugins.find(p => p.name === selectedPlugin.name);
+            if (plugin) plugin.status = 'running';
+            renderPluginsList();
+            pluginResults[selectedPlugin.name] = null;
+            try {
+                await fetch(`${API_BASE}/plugins/${selectedPlugin.type}/${selectedPlugin.name}/run`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ target, config: {} }) });
+                addFeedItem('plugin.started', `${selectedPlugin.name} started on ${target}`);
+            } catch(e) {
+                document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Error running plugin</p></div>`;
+                if (plugin) plugin.status = 'failed';
+                renderPluginsList();
+            }
+        }
+        
+        function handlePluginCompleted(data) {
+            const pluginName = data.plugin, findings = data.findings || [];
+            pluginResults[pluginName] = findings;
+            const plugin = plugins.find(p => p.name === pluginName);
+            if (plugin) plugin.status = 'completed';
+            renderPluginsList();
+            if (selectedPlugin && selectedPlugin.name === pluginName) displayPluginFindings(findings, pluginName, data.target);
+            fetchMetrics();
+        }
+        
+        function handlePluginFailed(data) {
+            const plugin = plugins.find(p => p.name === data.plugin);
+            if (plugin) plugin.status = 'failed';
+            renderPluginsList();
+            if (selectedPlugin && selectedPlugin.name === data.plugin) document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Plugin failed: ${data.error || 'Unknown error'}</p></div>`;
+        }
+        
+        function displayPluginFindings(findings, pluginName, target) {
+            const resultsDiv = document.getElementById('pluginResults');
+            if (!findings || findings.length === 0) {
+                resultsDiv.innerHTML = `<div style="padding: 1rem;"><div class="ti-verdict clean"><div class="ti-verdict-icon">✓</div><div><div class="ti-verdict-label">No Issues Found</div><div style="font-size: 0.85rem; color: var(--text-secondary);">${pluginName} completed without detecting issues on ${target || 'target'}.</div></div></div></div>`;
+                return;
+            }
+            const counts = findings.reduce((acc, f) => { const sev = (f.severity || 'info').toLowerCase(); acc[sev] = (acc[sev] || 0) + 1; return acc; }, {});
+            let summaryHtml = '<div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">';
+            if (counts.critical) summaryHtml += `<span class="severity critical">${counts.critical} Critical</span>`;
+            if (counts.high) summaryHtml += `<span class="severity high">${counts.high} High</span>`;
+            if (counts.medium) summaryHtml += `<span class="severity medium">${counts.medium} Medium</span>`;
+            if (counts.low) summaryHtml += `<span class="severity low">${counts.low} Low</span>`;
+            if (counts.info) summaryHtml += `<span class="severity info">${counts.info} Info</span>`;
+            summaryHtml += '</div>';
+            let html = `<div style="padding: 0.5rem;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;"><h4 style="color: var(--accent);">${findings.length} Finding(s) from ${pluginName}</h4><span style="color: var(--text-secondary); font-size: 0.8rem;">Target: ${target || 'N/A'}</span></div>${summaryHtml}`;
+            for (const f of findings) html += createFindingCard(f);
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        function createFindingCard(f) {
+            const sev = (f.severity || 'info').toLowerCase();
+            return `<div class="finding-card ${sev}" onclick="toggleFinding(this)"><div class="finding-header"><div><div class="finding-title">${f.issue || 'Unknown Issue'}</div><div class="finding-meta"><span class="severity ${sev}">${sev}</span><span>📍 ${f.endpoint || 'N/A'}</span><span>🏷️ ${f.category || 'General'}</span></div></div></div><div class="finding-details"><dl><dt>Description</dt><dd>${f.description || f.issue || 'N/A'}</dd><dt>Evidence</dt><dd>${f.evidence || 'N/A'}</dd><dt>CWE ID</dt><dd>${f.cwe_id || 'N/A'}</dd><dt>Recommendation</dt><dd>${f.recommendation || 'Review and remediate'}</dd></dl></div></div>`;
+        }
+        
+        function toggleFinding(el) { el.querySelector('.finding-details').classList.toggle('open'); }
+        
+        async function startWorkflow() {
+            const target = document.getElementById('globalTarget').value, template = document.getElementById('workflowTemplate').value;
+            if (!target) { alert('Please enter a target URL'); return; }
+            document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Starting workflow...</p></div></div>`;
+            try {
+                const res = await fetch(`${API_BASE}/workflows`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ template, target }) });
+                const data = await res.json();
+                currentWorkflow = data.workflow_id;
+                addFeedItem('workflow.started', `${template} started`);
+                pollWorkflowStatus();
+            } catch(e) { document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">❌</div><p>Error starting workflow</p></div></div>`; }
+        }
+        
+        async function pollWorkflowStatus() {
+            if (!currentWorkflow) return;
+            try {
+                const res = await fetch(`${API_BASE}/workflows/${currentWorkflow}`);
+                const workflow = await res.json();
+                displayWorkflowProgress(workflow);
+                if (workflow.status === 'running') setTimeout(pollWorkflowStatus, 2000);
+                else fetchMetrics();
+            } catch(e) { console.error('Workflow poll error:', e); }
+        }
+        
+        function displayWorkflowProgress(workflow) {
+            let stepsHtml = '<div class="workflow-progress">';
+            workflow.steps.forEach((step, i) => {
+                const statusClass = step.status === 'completed' ? 'completed' : step.status === 'running' ? 'running' : step.status === 'failed' ? 'failed' : '';
+                stepsHtml += `<div class="workflow-step ${statusClass}"><div class="step-num">${i + 1}</div><div class="step-name">${step.name}</div><div class="step-findings">${step.status}</div></div>`;
+            });
+            stepsHtml += '</div>';
+            const statusIcon = workflow.status === 'completed' ? '✓' : workflow.status === 'failed' ? '✗' : '⚡';
+            const statusColor = workflow.status === 'completed' ? 'var(--accent)' : workflow.status === 'failed' ? 'var(--critical)' : 'var(--medium)';
+            document.getElementById('workflowResults').innerHTML = `<div class="panel"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;"><h3 style="color: var(--accent);">${workflow.name}</h3><span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${workflow.status.toUpperCase()}</span></div>${stepsHtml}</div>`;
+        }
+        
+        async function fetchFindings() {
+            const severity = document.getElementById('severityFilter').value;
+            try {
+                const res = await fetch(severity ? `${API_BASE}/findings?severity=${severity}` : `${API_BASE}/findings`);
+                allFindings = await res.json();
+                displayAllFindings();
+            } catch(e) { console.error('Findings error:', e); }
+        }
+        
+        function displayAllFindings() {
+            const container = document.getElementById('findingsList');
+            if (!allFindings || allFindings.length === 0) { container.innerHTML = `<div class="empty-state"><div class="icon">🔐</div><p>No findings yet. Run a scan to detect issues.</p></div>`; return; }
+            container.innerHTML = allFindings.map(f => createFindingCard(f)).join('');
+        }
+        
+        async function lookupTI() {
+            const indicator = document.getElementById('tiIndicator').value, type = document.getElementById('tiType').value, service = document.getElementById('tiService').value, mode = document.getElementById('tiMode').value;
+            if (!indicator) { alert('Please enter an indicator'); return; }
+            document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">🔍</div><p>Looking up ${indicator}...</p></div>`;
+            try {
+                const res = await fetch(`${API_BASE}/threatintel/lookup`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ indicator, indicator_type: type, service, mode }) });
+                displayTIResults(await res.json(), indicator, service);
+            } catch(e) { document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed</p></div>`; }
+        }
+        
+        function displayTIResults(data, indicator, service) {
+            const threatLevel = (data.threat_level || 'unknown').toLowerCase();
+            let verdictClass, verdictIcon, verdictLabel, verdictDesc;
+            if (threatLevel === 'clean' || threatLevel === 'safe') { verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected.'; }
+            else if (threatLevel === 'suspicious' || threatLevel === 'medium') { verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected.'; }
+            else if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') { verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Threats confirmed!'; }
+            else { verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.'; }
+            let detailsHtml = '';
+            if (service === 'virustotal') { detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: ${(data.malicious||0) > 0 ? 'var(--critical)' : 'var(--accent)'}">${data.malicious||0}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || 'N/A'}</div></div>`; }
+            else if (service === 'abuseipdb') { const s = data.abuse_confidence_score||0, r = data.total_reports||0; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Abuse Score</div><div class="ti-detail-value" style="color: ${s>=50||r>=100 ? 'var(--critical)' : s>=25||r>=10 ? 'var(--high)' : 'var(--accent)'}">${s}%</div></div><div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value">${r}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country_code||'N/A'}</div></div><div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp||'N/A'}</div></div>`; }
+            else if (service === 'otx') { const p = data.pulse_count||0; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Pulse Count</div><div class="ti-detail-value" style="color: ${p>=10 ? 'var(--critical)' : p>=3 ? 'var(--high)' : 'var(--accent)'}">${p}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country||data.country_code||'N/A'}</div></div><div class="ti-detail"><div class="ti-detail-label">ASN</div><div class="ti-detail-value">${data.asn||'N/A'}</div></div>`; }
+            else if (service === 'pulsedive') { const risk = data.risk||'none', threats = data.threats||[], rf = data.risk_factors||[]; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Risk</div><div class="ti-detail-value" style="color: ${risk==='critical'||risk==='high' ? 'var(--critical)' : risk==='medium' ? 'var(--high)' : 'var(--accent)'}; text-transform: uppercase;">${risk}</div></div><div class="ti-detail"><div class="ti-detail-label">Threats</div><div class="ti-detail-value" style="color: ${threats.length>0 ? 'var(--critical)' : 'var(--accent)'}">${threats.length>0 ? threats.join(', ') : 'None'}</div></div><div class="ti-detail"><div class="ti-detail-label">Risk Factors</div><div class="ti-detail-value">${rf.length>0 ? rf.slice(0,3).join(', ') : 'None'}</div></div>`; }
+            detailsHtml += `<div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.8rem; word-break: break-all;">${indicator}</div></div>`;
+            document.getElementById('tiResults').innerHTML = `<div class="panel"><div class="ti-verdict ${verdictClass}"><div class="ti-verdict-icon">${verdictIcon}</div><div><div class="ti-verdict-label">${verdictLabel}</div><div style="font-size: 0.85rem; color: var(--text-secondary);">${verdictDesc}</div></div></div><div class="ti-details">${detailsHtml}</div><details style="margin-top: 1rem;"><summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.8rem;">Raw Response</summary><pre style="margin-top: 0.5rem; font-size: 0.75rem; overflow-x: auto; background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px;">${JSON.stringify(data, null, 2)}</pre></details></div>`;
+        }
+        
+        function addFeedItem(type, message) {
+            const feed = document.getElementById('liveFeed'), time = new Date().toLocaleTimeString();
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `<span class="time">[${time}]</span> <span class="type">[${type}]</span> ${message}`;
+            feed.insertBefore(item, feed.firstChild);
+            if (feed.children.length > 100) feed.removeChild(feed.lastChild);
+        }
+        
+        function connectWS() {
+            ws = new WebSocket(`${WS_PROTOCOL}//${location.host}/ws/stream`);
+            ws.onopen = () => { document.getElementById('ws-dot').className = 'status-dot connected'; document.getElementById('ws-status').textContent = 'Connected'; };
+            ws.onclose = () => { document.getElementById('ws-dot').className = 'status-dot disconnected'; document.getElementById('ws-status').textContent = 'Disconnected'; setTimeout(connectWS, 3000); };
+            ws.onerror = () => { document.getElementById('ws-dot').className = 'status-dot disconnected'; document.getElementById('ws-status').textContent = 'Error'; };
+            ws.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data), eventType = data.type, eventData = data.data || {};
+                    if (eventType === 'plugin.completed') { addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s)`); handlePluginCompleted(eventData); }
+                    else if (eventType === 'plugin.failed') { addFeedItem(eventType, `${eventData.plugin} failed`); handlePluginFailed(eventData); }
+                    else if (eventType === 'workflow.completed') { addFeedItem(eventType, 'Workflow completed'); fetchMetrics(); }
+                    else addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
+                } catch { addFeedItem('event', e.data); }
+            };
+        }
+        
+        fetchMetrics(); fetchPlugins(); connectWS(); setInterval(fetchMetrics, 10000);
+    </script>
+</body>
+</html>
