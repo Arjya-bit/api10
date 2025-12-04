@@ -260,7 +260,10 @@
     </div>
     
     <script>
+        // Determine API base - in production, /api routes to backend via ingress
         const API_BASE = '/api';
+        // For WebSocket, we need to use the same host but with wss:// for https
+        const WS_PROTOCOL = location.protocol === 'https:' ? 'wss:' : 'ws:';
         let ws = null;
         
         async function fetchMetrics() {
