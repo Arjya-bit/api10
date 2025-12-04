@@ -188,10 +188,86 @@
             border-radius: 4px;
             font-family: monospace;
             font-size: 0.8rem;
-            white-space: pre-wrap;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
         }
+        .ti-verdict {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .ti-verdict.clean {
+            background: rgba(0,255,148,0.1);
+            border: 1px solid var(--accent);
+        }
+        .ti-verdict.suspicious {
+            background: rgba(255,159,28,0.1);
+            border: 1px solid var(--high);
+        }
+        .ti-verdict.malicious {
+            background: rgba(255,42,109,0.1);
+            border: 1px solid var(--critical);
+        }
+        .ti-verdict-icon {
+            font-size: 2rem;
+        }
+        .ti-verdict-text {
+            flex: 1;
+        }
+        .ti-verdict-label {
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .ti-verdict.clean .ti-verdict-label { color: var(--accent); }
+        .ti-verdict.suspicious .ti-verdict-label { color: var(--high); }
+        .ti-verdict.malicious .ti-verdict-label { color: var(--critical); }
+        .ti-verdict-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        .ti-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .ti-detail-item {
+            background: #0a0a0a;
+            padding: 0.75rem;
+            border-radius: 4px;
+        }
+        .ti-detail-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .ti-detail-value {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 0.25rem;
+        }
+        .ti-raw-toggle {
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .ti-raw {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: #0a0a0a;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .ti-raw.show { display: block; }
     </style>
 </head>
 <body>
