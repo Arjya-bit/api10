@@ -876,19 +876,47 @@
             
             let detailsHtml = '';
             if (service === 'virustotal') {
+                const malicious = data.malicious || 0;
+                const total = (data.malicious || 0) + (data.suspicious || 0) + (data.harmless || 0) + (data.undetected || 0);
                 detailsHtml = `
-                    <div class="ti-detail"><div class="ti-detail-label">Detections</div><div class="ti-detail-value">${data.malicious_count || 0} / ${data.total_engines || 0}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Reputation</div><div class="ti-detail-value">${data.reputation_score || 'N/A'}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Service</div><div class="ti-detail-value">VirusTotal</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: ${malicious > 0 ? 'var(--critical)' : 'var(--accent)'}">${malicious}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Total Engines</div><div class="ti-detail-value">${total}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || 'N/A'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">ASN Owner</div><div class="ti-detail-value">${data.as_owner || 'N/A'}</div></div>
                 `;
             } else if (service === 'abuseipdb') {
                 const abuseScore = data.abuse_confidence_score || 0;
-                const scoreColor = abuseScore > 50 ? 'var(--critical)' : abuseScore > 20 ? 'var(--high)' : 'var(--accent)';
+                const reports = data.total_reports || 0;
+                const scoreColor = abuseScore >= 50 || reports >= 100 ? 'var(--critical)' : abuseScore >= 25 || reports >= 10 ? 'var(--high)' : 'var(--accent)';
                 detailsHtml = `
                     <div class="ti-detail"><div class="ti-detail-label">Abuse Score</div><div class="ti-detail-value" style="color: ${scoreColor}">${abuseScore}%</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value">${data.total_reports || 0}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value" style="color: ${reports >= 100 ? 'var(--critical)' : reports >= 10 ? 'var(--high)' : 'var(--accent)'}">${reports}</div></div>
                     <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country_code || 'N/A'}</div></div>
                     <div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp || 'N/A'}</div></div>
+                    ${data.is_tor ? '<div class="ti-detail"><div class="ti-detail-label">TOR Node</div><div class="ti-detail-value" style="color: var(--critical)">YES</div></div>' : ''}
+                `;
+            } else if (service === 'otx') {
+                const pulseCount = data.pulse_count || 0;
+                const reputation = data.reputation || 0;
+                const pulseColor = pulseCount >= 10 ? 'var(--critical)' : pulseCount >= 3 ? 'var(--high)' : 'var(--accent)';
+                detailsHtml = `
+                    <div class="ti-detail"><div class="ti-detail-label">Pulse Count</div><div class="ti-detail-value" style="color: ${pulseColor}">${pulseCount}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Reputation</div><div class="ti-detail-value">${reputation}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || data.country_code || 'N/A'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">ASN</div><div class="ti-detail-value">${data.asn || 'N/A'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Service</div><div class="ti-detail-value">AlienVault OTX</div></div>
+                `;
+            } else if (service === 'pulsedive') {
+                const risk = data.risk || 'none';
+                const riskColor = risk === 'critical' || risk === 'high' ? 'var(--critical)' : risk === 'medium' ? 'var(--high)' : 'var(--accent)';
+                const threats = data.threats || [];
+                const riskFactors = data.risk_factors || [];
+                detailsHtml = `
+                    <div class="ti-detail"><div class="ti-detail-label">Risk Level</div><div class="ti-detail-value" style="color: ${riskColor}; text-transform: uppercase;">${risk}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Threats</div><div class="ti-detail-value" style="color: ${threats.length > 0 ? 'var(--critical)' : 'var(--accent)'}">${threats.length > 0 ? threats.join(', ') : 'None'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Risk Factors</div><div class="ti-detail-value">${riskFactors.length > 0 ? riskFactors.slice(0, 3).join(', ') : 'None'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Feeds</div><div class="ti-detail-value">${(data.feeds || []).length}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Service</div><div class="ti-detail-value">PulseDive</div></div>
                 `;
             }
             
