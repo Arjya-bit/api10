@@ -105,6 +105,7 @@ class ElasticConnector(BaseSIEMConnector):
     
     def __init__(self, mode: str = "mock", config: Dict[str, Any] = None):
         super().__init__(mode, config)
+        config = config or {}
         self.es_url = config.get('es_url') or os.environ.get('ELASTICSEARCH_URL')
         self.api_key = config.get('api_key') or os.environ.get('ELASTICSEARCH_API_KEY')
         self.index = config.get('index', 'apiguardian-findings')
