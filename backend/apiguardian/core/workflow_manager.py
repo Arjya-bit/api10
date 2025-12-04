@@ -1,16 +1,16 @@
-"""Workflow Manager - Chain and orchestrate multi-step scan workflows"""
-import asyncio
+"""Workflow Manager - Orchestrate complex scan workflows"""
 import logging
+import asyncio
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Callable, Optional
+from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
-class StepStatus(str, Enum):
+class StepStatus(Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -20,16 +20,16 @@ class StepStatus(str, Enum):
 
 @dataclass
 class WorkflowStep:
-    """A single step in a workflow"""
+    """Individual step in a workflow"""
     id: str
     name: str
-    action: Callable
+    plugin_type: str
+    plugin_name: str
+    config: Dict[str, Any] = field(default_factory=dict)
     depends_on: List[str] = field(default_factory=list)
-    condition: Optional[Callable] = None  # Condition to run this step
-    retry_count: int = 0
-    timeout: int = 300
+    condition: Optional[str] = None  # e.g., "findings.critical > 0"
     status: StepStatus = StepStatus.PENDING
-    result: Any = None
+    result: Dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
     started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
@@ -37,262 +37,274 @@ class WorkflowStep:
 
 @dataclass
 class Workflow:
-    """A workflow containing multiple steps"""
+    """Workflow definition and state"""
     id: str
     name: str
-    steps: Dict[str, WorkflowStep] = field(default_factory=dict)
-    context: Dict[str, Any] = field(default_factory=dict)
-    status: StepStatus = StepStatus.PENDING
+    description: str = ""
+    steps: List[WorkflowStep] = field(default_factory=list)
+    status: str = "pending"
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
+    context: Dict[str, Any] = field(default_factory=dict)
     
-    def add_step(
-        self,
-        name: str,
-        action: Callable,
-        depends_on: List[str] = None,
-        condition: Callable = None,
-        timeout: int = 300
-    ) -> str:
-        """Add a step to the workflow"""
-        step_id = str(uuid.uuid4())
-        self.steps[step_id] = WorkflowStep(
-            id=step_id,
-            name=name,
-            action=action,
-            depends_on=depends_on or [],
-            condition=condition,
-            timeout=timeout
-        )
-        return step_id
+    def add_step(self, step: WorkflowStep):
+        self.steps.append(step)
+    
+    def get_step(self, step_id: str) -> Optional[WorkflowStep]:
+        for step in self.steps:
+            if step.id == step_id:
+                return step
+        return None
+    
+    def get_ready_steps(self) -> List[WorkflowStep]:
+        """Get steps that are ready to execute"""
+        ready = []
+        for step in self.steps:
+            if step.status != StepStatus.PENDING:
+                continue
+            # Check dependencies
+            deps_met = all(
+                self.get_step(dep_id).status == StepStatus.COMPLETED
+                for dep_id in step.depends_on
+                if self.get_step(dep_id)
+            )
+            if deps_met:
+                ready.append(step)
+        return ready
 
 
 class WorkflowManager:
-    """Manages and executes workflows"""
+    """Manages workflow creation, execution, and monitoring"""
     
     def __init__(self):
-        self._workflows: Dict[str, Workflow] = {}
-        self._templates: Dict[str, Callable[[], Workflow]] = {}
-        
-    def create_workflow(self, name: str) -> Workflow:
-        """Create a new workflow"""
-        workflow = Workflow(
-            id=str(uuid.uuid4()),
-            name=name
-        )
-        self._workflows[workflow.id] = workflow
-        return workflow
+        self.workflows: Dict[str, Workflow] = {}
+        self.templates: Dict[str, Dict] = self._load_templates()
     
-    def register_template(self, name: str, builder: Callable[[], Workflow]):
-        """Register a workflow template"""
-        self._templates[name] = builder
-    
-    def create_from_template(self, template_name: str) -> Optional[Workflow]:
-        """Create workflow from a registered template"""
-        if template_name in self._templates:
-            workflow = self._templates[template_name]()
-            self._workflows[workflow.id] = workflow
-            return workflow
-        return None
-    
-    async def execute(self, workflow: Workflow) -> Dict[str, Any]:
-        """Execute a workflow"""
-        workflow.status = StepStatus.RUNNING
-        logger.info(f"Starting workflow: {workflow.name}")
-        
-        try:
-            # Build execution order based on dependencies
-            execution_order = self._resolve_dependencies(workflow)
-            
-            for step_id in execution_order:
-                step = workflow.steps[step_id]
-                
-                # Check if dependencies completed
-                deps_ok = all(
-                    workflow.steps[dep_id].status == StepStatus.COMPLETED
-                    for dep_id in step.depends_on
-                    if dep_id in workflow.steps
-                )
-                
-                if not deps_ok:
-                    step.status = StepStatus.SKIPPED
-                    logger.warning(f"Skipping step {step.name}: dependencies not met")
-                    continue
-                
-                # Check condition
-                if step.condition:
-                    try:
-                        if not step.condition(workflow.context):
-                            step.status = StepStatus.SKIPPED
-                            logger.info(f"Skipping step {step.name}: condition not met")
-                            continue
-                    except Exception as e:
-                        logger.error(f"Condition check failed for {step.name}: {e}")
-                        continue
-                
-                # Execute step
-                await self._execute_step(step, workflow.context)
-                
-                # Update context with step result
-                if step.result:
-                    workflow.context[f"step_{step.name}"] = step.result
-            
-            # Determine workflow status
-            failed_steps = [s for s in workflow.steps.values() if s.status == StepStatus.FAILED]
-            if failed_steps:
-                workflow.status = StepStatus.FAILED
-            else:
-                workflow.status = StepStatus.COMPLETED
-            
-            logger.info(f"Workflow {workflow.name} completed with status: {workflow.status}")
-            
-        except Exception as e:
-            workflow.status = StepStatus.FAILED
-            logger.error(f"Workflow {workflow.name} failed: {e}")
-        
+    def _load_templates(self) -> Dict[str, Dict]:
+        """Load built-in workflow templates"""
         return {
-            'workflow_id': workflow.id,
-            'status': workflow.status.value,
-            'steps': {
-                s.name: {'status': s.status.value, 'error': s.error}
-                for s in workflow.steps.values()
+            'quick_scan': {
+                'name': 'Quick Security Scan',
+                'description': 'Fast scan with essential checks',
+                'steps': [
+                    {'name': 'Recon', 'plugin_type': 'recon', 'plugin_name': 'endpoint_discovery'},
+                    {'name': 'JWT Analysis', 'plugin_type': 'analyzer', 'plugin_name': 'jwt_analyzer'},
+                    {'name': 'Auth Check', 'plugin_type': 'analyzer', 'plugin_name': 'auth_analyzer'},
+                ]
             },
-            'context': workflow.context
+            'full_scan': {
+                'name': 'Full Security Assessment',
+                'description': 'Comprehensive security scan',
+                'steps': [
+                    {'name': 'OpenAPI Discovery', 'plugin_type': 'recon', 'plugin_name': 'openapi_scanner'},
+                    {'name': 'Endpoint Discovery', 'plugin_type': 'recon', 'plugin_name': 'endpoint_discovery'},
+                    {'name': 'JWT Analysis', 'plugin_type': 'analyzer', 'plugin_name': 'jwt_analyzer', 'depends_on': ['step_0', 'step_1']},
+                    {'name': 'IDOR Detection', 'plugin_type': 'analyzer', 'plugin_name': 'idor_detector', 'depends_on': ['step_0', 'step_1']},
+                    {'name': 'Auth Analysis', 'plugin_type': 'analyzer', 'plugin_name': 'auth_analyzer', 'depends_on': ['step_0']},
+                    {'name': 'Rate Limit Check', 'plugin_type': 'analyzer', 'plugin_name': 'rate_limit_analyzer', 'depends_on': ['step_0']},
+                    {'name': 'Replay Attack Check', 'plugin_type': 'analyzer', 'plugin_name': 'replay_attack_detector', 'depends_on': ['step_2']},
+                    {'name': 'Cloud Security', 'plugin_type': 'analyzer', 'plugin_name': 'cloud_analyzer', 'depends_on': ['step_0']},
+                    {'name': 'Payload Fuzzing', 'plugin_type': 'fuzzer', 'plugin_name': 'payload_fuzzer', 'depends_on': ['step_3', 'step_4']},
+                    {'name': 'Schema Fuzzing', 'plugin_type': 'fuzzer', 'plugin_name': 'schema_fuzzer', 'depends_on': ['step_0']},
+                ]
+            },
+            'api_pentest': {
+                'name': 'API Penetration Test',
+                'description': 'Aggressive API security testing',
+                'steps': [
+                    {'name': 'Full Recon', 'plugin_type': 'recon', 'plugin_name': 'openapi_scanner'},
+                    {'name': 'Endpoint Enum', 'plugin_type': 'recon', 'plugin_name': 'endpoint_discovery'},
+                    {'name': 'All Analyzers', 'plugin_type': 'analyzer', 'plugin_name': 'all', 'depends_on': ['step_0', 'step_1']},
+                    {'name': 'Schema Fuzz', 'plugin_type': 'fuzzer', 'plugin_name': 'schema_fuzzer', 'depends_on': ['step_0']},
+                    {'name': 'Mutation Fuzz', 'plugin_type': 'fuzzer', 'plugin_name': 'mutation_fuzzer', 'depends_on': ['step_2']},
+                    {'name': 'GraphQL Fuzz', 'plugin_type': 'fuzzer', 'plugin_name': 'graphql_fuzzer', 'depends_on': ['step_0']},
+                    {'name': 'Payload Fuzz', 'plugin_type': 'fuzzer', 'plugin_name': 'payload_fuzzer', 'depends_on': ['step_2']},
+                ]
+            },
+            'compliance_check': {
+                'name': 'Compliance Check',
+                'description': 'Security compliance verification',
+                'steps': [
+                    {'name': 'Recon', 'plugin_type': 'recon', 'plugin_name': 'openapi_scanner'},
+                    {'name': 'Auth Security', 'plugin_type': 'analyzer', 'plugin_name': 'auth_analyzer'},
+                    {'name': 'Rate Limiting', 'plugin_type': 'analyzer', 'plugin_name': 'rate_limit_analyzer'},
+                    {'name': 'Cloud Config', 'plugin_type': 'analyzer', 'plugin_name': 'cloud_analyzer'},
+                ]
+            }
         }
     
-    async def _execute_step(self, step: WorkflowStep, context: Dict[str, Any]):
-        """Execute a single workflow step"""
-        step.status = StepStatus.RUNNING
-        step.started_at = datetime.now(timezone.utc)
+    def create_workflow(
+        self,
+        name: str,
+        steps: List[Dict[str, Any]] = None,
+        template: str = None,
+        context: Dict[str, Any] = None
+    ) -> Workflow:
+        """Create a new workflow"""
+        workflow_id = str(uuid.uuid4())
         
-        logger.info(f"Executing step: {step.name}")
+        if template and template in self.templates:
+            tmpl = self.templates[template]
+            name = tmpl['name']
+            steps = tmpl['steps']
         
-        retry = 0
-        while retry <= step.retry_count:
-            try:
-                # Execute with timeout
-                if asyncio.iscoroutinefunction(step.action):
-                    step.result = await asyncio.wait_for(
-                        step.action(context),
-                        timeout=step.timeout
-                    )
-                else:
-                    step.result = step.action(context)
-                
-                step.status = StepStatus.COMPLETED
-                step.finished_at = datetime.now(timezone.utc)
-                logger.info(f"Step {step.name} completed successfully")
-                return
-                
-            except asyncio.TimeoutError:
-                step.error = f"Step timed out after {step.timeout}s"
-                logger.error(f"Step {step.name} timed out")
-                
-            except Exception as e:
-                step.error = str(e)
-                logger.error(f"Step {step.name} failed: {e}")
-            
-            retry += 1
-            if retry <= step.retry_count:
-                logger.info(f"Retrying step {step.name} ({retry}/{step.retry_count})")
-                await asyncio.sleep(1)
+        workflow = Workflow(
+            id=workflow_id,
+            name=name,
+            context=context or {}
+        )
         
-        step.status = StepStatus.FAILED
-        step.finished_at = datetime.now(timezone.utc)
-    
-    def _resolve_dependencies(self, workflow: Workflow) -> List[str]:
-        """Resolve step execution order using topological sort"""
-        visited = set()
-        order = []
+        # Add steps
+        for i, step_def in enumerate(steps or []):
+            step = WorkflowStep(
+                id=f"step_{i}",
+                name=step_def.get('name', f'Step {i}'),
+                plugin_type=step_def.get('plugin_type', 'analyzer'),
+                plugin_name=step_def.get('plugin_name', ''),
+                config=step_def.get('config', {}),
+                depends_on=step_def.get('depends_on', []),
+                condition=step_def.get('condition')
+            )
+            workflow.add_step(step)
         
-        def visit(step_id: str):
-            if step_id in visited:
-                return
-            visited.add(step_id)
-            
-            step = workflow.steps.get(step_id)
-            if step:
-                for dep_id in step.depends_on:
-                    visit(dep_id)
-                order.append(step_id)
+        self.workflows[workflow_id] = workflow
+        logger.info(f"Created workflow: {workflow_id} - {name}")
         
-        for step_id in workflow.steps:
-            visit(step_id)
-        
-        return order
+        return workflow
     
     def get_workflow(self, workflow_id: str) -> Optional[Workflow]:
-        """Get workflow by ID"""
-        return self._workflows.get(workflow_id)
+        return self.workflows.get(workflow_id)
     
     def list_workflows(self) -> List[Dict]:
-        """List all workflows"""
         return [
             {
                 'id': w.id,
                 'name': w.name,
-                'status': w.status.value,
-                'steps_count': len(w.steps),
+                'status': w.status,
+                'steps_total': len(w.steps),
+                'steps_completed': sum(1 for s in w.steps if s.status == StepStatus.COMPLETED),
                 'created_at': w.created_at.isoformat()
             }
-            for w in self._workflows.values()
+            for w in self.workflows.values()
         ]
+    
+    def list_templates(self) -> List[Dict]:
+        return [
+            {'id': tid, 'name': t['name'], 'description': t['description']}
+            for tid, t in self.templates.items()
+        ]
+    
+    async def execute_workflow(
+        self,
+        workflow_id: str,
+        engine,
+        on_step_complete: Callable = None
+    ) -> Workflow:
+        """Execute a workflow"""
+        workflow = self.workflows.get(workflow_id)
+        if not workflow:
+            raise ValueError(f"Workflow not found: {workflow_id}")
+        
+        workflow.status = 'running'
+        workflow.started_at = datetime.now(timezone.utc)
+        
+        try:
+            while True:
+                ready_steps = workflow.get_ready_steps()
+                if not ready_steps:
+                    # Check if all steps are done
+                    all_done = all(
+                        s.status in [StepStatus.COMPLETED, StepStatus.FAILED, StepStatus.SKIPPED]
+                        for s in workflow.steps
+                    )
+                    if all_done:
+                        break
+                    else:
+                        # Some steps still pending but blocked
+                        logger.warning("Workflow has blocked steps")
+                        break
+                
+                # Execute ready steps in parallel
+                tasks = [
+                    self._execute_step(workflow, step, engine)
+                    for step in ready_steps
+                ]
+                await asyncio.gather(*tasks)
+                
+                # Callback
+                if on_step_complete:
+                    for step in ready_steps:
+                        on_step_complete(workflow, step)
+            
+            workflow.status = 'completed'
+            
+        except Exception as e:
+            workflow.status = 'failed'
+            logger.error(f"Workflow failed: {e}")
+            raise
+        
+        finally:
+            workflow.finished_at = datetime.now(timezone.utc)
+        
+        return workflow
+    
+    async def _execute_step(self, workflow: Workflow, step: WorkflowStep, engine):
+        """Execute a single workflow step"""
+        step.status = StepStatus.RUNNING
+        step.started_at = datetime.now(timezone.utc)
+        
+        try:
+            # Check condition
+            if step.condition and not self._evaluate_condition(step.condition, workflow.context):
+                step.status = StepStatus.SKIPPED
+                logger.info(f"Step skipped (condition not met): {step.name}")
+                return
+            
+            # Get plugin and execute
+            from apiguardian.core.plugin_manager import plugin_manager
+            
+            if step.plugin_name == 'all':
+                # Run all plugins of type
+                plugins = plugin_manager.get_plugins_by_type(step.plugin_type)
+                results = []
+                for plugin_cls in plugins:
+                    plugin = plugin_cls(step.config)
+                    result = await plugin.execute(workflow.context)
+                    results.extend(result)
+                step.result = {'findings': results}
+            else:
+                plugin = plugin_manager.get_plugin(
+                    step.plugin_type,
+                    step.plugin_name,
+                    step.config
+                )
+                if plugin:
+                    result = await plugin.execute(workflow.context)
+                    step.result = {'findings': result}
+                else:
+                    raise ValueError(f"Plugin not found: {step.plugin_type}/{step.plugin_name}")
+            
+            step.status = StepStatus.COMPLETED
+            logger.info(f"Step completed: {step.name}")
+            
+        except Exception as e:
+            step.status = StepStatus.FAILED
+            step.error = str(e)
+            logger.error(f"Step failed: {step.name} - {e}")
+        
+        finally:
+            step.finished_at = datetime.now(timezone.utc)
+    
+    def _evaluate_condition(self, condition: str, context: Dict) -> bool:
+        """Evaluate a step condition"""
+        try:
+            # Simple expression evaluation
+            # e.g., "findings.critical > 0"
+            return eval(condition, {'__builtins__': {}}, context)
+        except Exception:
+            return True  # Default to running if condition fails
 
 
-# Pre-built workflow templates
-def create_auth_escalation_workflow() -> Workflow:
-    """Create a workflow for testing authentication and privilege escalation"""
-    wf = Workflow(
-        id=str(uuid.uuid4()),
-        name="Auth & Privilege Escalation Test"
-    )
-    
-    async def authenticate(ctx):
-        # Placeholder - would authenticate to target
-        return {'token': 'test_token', 'user_id': 'user123'}
-    
-    async def test_horizontal_access(ctx):
-        # Test accessing other users' resources
-        return {'idor_findings': []}
-    
-    async def test_vertical_escalation(ctx):
-        # Test accessing admin endpoints
-        return {'escalation_findings': []}
-    
-    auth_step = wf.add_step('authenticate', authenticate)
-    wf.add_step('horizontal_access', test_horizontal_access, depends_on=[auth_step])
-    wf.add_step('vertical_escalation', test_vertical_escalation, depends_on=[auth_step])
-    
-    return wf
-
-
-def create_full_scan_workflow() -> Workflow:
-    """Create a comprehensive scan workflow"""
-    wf = Workflow(
-        id=str(uuid.uuid4()),
-        name="Full Security Scan"
-    )
-    
-    async def recon_phase(ctx):
-        return {'endpoints': [], 'technologies': []}
-    
-    async def auth_analysis(ctx):
-        return {'findings': []}
-    
-    async def injection_testing(ctx):
-        return {'findings': []}
-    
-    async def generate_report(ctx):
-        return {'report_path': 'reports/latest.json'}
-    
-    recon = wf.add_step('reconnaissance', recon_phase)
-    auth = wf.add_step('auth_analysis', auth_analysis, depends_on=[recon])
-    injection = wf.add_step('injection_testing', injection_testing, depends_on=[recon])
-    wf.add_step('report_generation', generate_report, depends_on=[auth, injection])
-    
-    return wf
-
-
-# Global workflow manager
+# Global instance
 workflow_manager = WorkflowManager()
-workflow_manager.register_template('auth_escalation', create_auth_escalation_workflow)
-workflow_manager.register_template('full_scan', create_full_scan_workflow)
