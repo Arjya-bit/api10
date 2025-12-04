@@ -523,6 +523,70 @@ async def threat_intel_lookup(request: ThreatIntelRequest):
     return result
 
 
+
+@api_router.post("/threatintel/lookup-all")
+async def threat_intel_lookup_all(indicator: str, indicator_type: str = "ip", mode: str = "live"):
+    """
+    Query all configured threat intelligence services and aggregate results
+    Returns both individual service results and an overall verdict
+    """
+    results = []
+    
+    # Query all services
+    for service_name in ADAPTERS.keys():
+        adapter = get_adapter(service_name, mode=mode)
+        if not adapter:
+            continue
+        
+        try:
+            if indicator_type == "ip":
+                result = adapter.lookup_ip(indicator)
+            elif indicator_type == "url":
+                result = adapter.lookup_url(indicator)
+            elif indicator_type == "hash":
+                result = adapter.lookup_hash(indicator)
+            else:
+                continue
+            
+            results.append(result)
+        except Exception as e:
+            logger.error(f"Error querying {service_name}: {e}")
+            continue
+    
+    # Aggregate threat levels
+    threat_counts = {'malicious': 0, 'suspicious': 0, 'clean': 0, 'unknown': 0}
+    for result in results:
+        level = result.get('threat_level', 'unknown').lower()
+        if level in threat_counts:
+            threat_counts[level] += 1
+        else:
+            threat_counts['unknown'] += 1
+    
+    # Determine overall verdict (most severe wins)
+    if threat_counts['malicious'] > 0:
+        overall_verdict = 'malicious'
+        verdict_reason = f"{threat_counts['malicious']}/{len(results)} services reported malicious"
+    elif threat_counts['suspicious'] > 0:
+        overall_verdict = 'suspicious'
+        verdict_reason = f"{threat_counts['suspicious']}/{len(results)} services reported suspicious"
+    elif threat_counts['clean'] > 0:
+        overall_verdict = 'clean'
+        verdict_reason = f"All {threat_counts['clean']} services reported clean"
+    else:
+        overall_verdict = 'unknown'
+        verdict_reason = "Unable to determine threat level"
+    
+    return {
+        'indicator': indicator,
+        'indicator_type': indicator_type,
+        'overall_verdict': overall_verdict,
+        'verdict_reason': verdict_reason,
+        'threat_counts': threat_counts,
+        'total_services': len(results),
+        'results': results
+    }
+
+
 @api_router.get("/threatintel/services")
 async def list_ti_services():
     return [
