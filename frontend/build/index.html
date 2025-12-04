@@ -388,8 +388,15 @@
             if (!indicator) { alert('Please enter an indicator'); return; }
             document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">🔍</div><p>Looking up ${indicator}...</p></div>`;
             try {
-                const res = await fetch(`${API_BASE}/threatintel/lookup`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ indicator, indicator_type: type, service, mode }) });
-                displayTIResults(await res.json(), indicator, service);
+                if (service === 'all') {
+                    // Use aggregated endpoint
+                    const res = await fetch(`${API_BASE}/threatintel/lookup-all?indicator=${encodeURIComponent(indicator)}&indicator_type=${type}&mode=${mode}`, { method: 'POST' });
+                    displayAggregatedTIResults(await res.json());
+                } else {
+                    // Use single service endpoint
+                    const res = await fetch(`${API_BASE}/threatintel/lookup`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ indicator, indicator_type: type, service, mode }) });
+                    displayTIResults(await res.json(), indicator, service);
+                }
             } catch(e) { document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed</p></div>`; }
         }
         
