@@ -467,9 +467,234 @@ class OTXAdapter(BaseTIAdapter):
         return self._mock_hash_lookup(file_hash)
 
 
+class ProjectHoneypotAdapter(BaseTIAdapter):
+    """Project Honeypot http:BL threat intelligence adapter
+
+    Uses DNS-based lookups to check IPs against Project Honeypot's database.
+    Query format: {access_key}.{reversed_ip}.dnsbl.httpbl.org
+    Response: 127.{days_since_last_seen}.{threat_score}.{visitor_type}
+
+    Visitor types:
+    - 0 = Search Engine
+    - 1 = Suspicious
+    - 2 = Harvester
+    - 4 = Comment Spammer
+    (values can be combined, e.g., 6 = Harvester + Comment Spammer)
+    """
+
+    service_name = "honeypot"
+    api_key_env = "HONEYPOT_API_KEY"
+
+    VISITOR_TYPES = {
+        0: 'search_engine',
+        1: 'suspicious',
+        2: 'harvester',
+        4: 'comment_spammer'
+    }
+
+    def _mock_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': ip,
+            'type': 'ip',
+            'listed': False,
+            'days_since_last_seen': None,
+            'threat_score': 0,
+            'visitor_types': [],
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+
+    def _mock_url_lookup(self, url: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': url,
+            'type': 'url',
+            'note': 'Project Honeypot only supports IP lookups',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+
+    def _mock_hash_lookup(self, file_hash: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': file_hash,
+            'type': 'hash',
+            'note': 'Project Honeypot only supports IP lookups',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+
+    def _decode_visitor_type(self, type_code: int) -> list:
+        """Decode visitor type bitmask into list of types"""
+        types = []
+        for code, name in self.VISITOR_TYPES.items():
+            if type_code & code or (code == 0 and type_code == 0):
+                if code == 0 and type_code == 0:
+                    types.append(name)
+                elif code != 0 and type_code & code:
+                    types.append(name)
+        return types if types else ['unknown']
+
+    def _live_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        """Live Project Honeypot lookup using DNS"""
+        import socket
+        try:
+            # Reverse the IP octets
+            reversed_ip = '.'.join(reversed(ip.split('.')))
+
+            # Build the query: accesskey.reversedip.dnsbl.httpbl.org
+            query = f"{self.api_key}.{reversed_ip}.dnsbl.httpbl.org"
+
+            try:
+                # Perform DNS lookup
+                result = socket.gethostbyname(query)
+                octets = result.split('.')
+
+                if len(octets) == 4 and octets[0] == '127':
+                    days_since_last_seen = int(octets[1])
+                    threat_score = int(octets[2])
+                    visitor_type = int(octets[3])
+
+                    visitor_types = self._decode_visitor_type(visitor_type)
+
+                    # Determine threat level
+                    if visitor_type == 0:
+                        threat_level = 'clean'  # Search engine
+                    elif threat_score >= 50:
+                        threat_level = 'malicious'
+                    elif threat_score >= 25:
+                        threat_level = 'suspicious'
+                    else:
+                        threat_level = 'suspicious' if visitor_type > 0 else 'clean'
+
+                    return {
+                        'service': self.service_name,
+                        'indicator': ip,
+                        'type': 'ip',
+                        'listed': True,
+                        'days_since_last_seen': days_since_last_seen,
+                        'threat_score': threat_score,
+                        'visitor_types': visitor_types,
+                        'raw_visitor_type': visitor_type,
+                        'threat_level': threat_level,
+                        'queried_at': datetime.now(timezone.utc).isoformat()
+                    }
+            except socket.gaierror:
+                # IP not found in database (NXDOMAIN) - this is normal for clean IPs
+                pass
+
+            return {
+                'service': self.service_name,
+                'indicator': ip,
+                'type': 'ip',
+                'listed': False,
+                'days_since_last_seen': None,
+                'threat_score': 0,
+                'visitor_types': [],
+                'threat_level': 'clean',
+                'queried_at': datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Project Honeypot IP lookup failed: {e}")
+        return self._mock_ip_lookup(ip)
+
+
+class HetrixToolsAdapter(BaseTIAdapter):
+    """HetrixTools Blacklist Check adapter
+
+    Uses HetrixTools API to check IPs against multiple blacklists.
+    API endpoint: https://api.hetrixtools.com/v2/{apikey}/blacklist-check/ipv4/{ip}/
+    """
+
+    service_name = "hetrixtools"
+    api_key_env = "HETRIXTOOLS_API_KEY"
+
+    def _mock_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': ip,
+            'type': 'ip',
+            'blacklisted_count': 0,
+            'blacklists_checked': 100,
+            'blacklisted_on': [],
+            'threat_level': 'clean',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+
+    def _mock_url_lookup(self, url: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': url,
+            'type': 'url',
+            'note': 'HetrixTools blacklist check only supports IP lookups',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+
+    def _mock_hash_lookup(self, file_hash: str) -> Dict[str, Any]:
+        return {
+            'service': self.service_name,
+            'indicator': file_hash,
+            'type': 'hash',
+            'note': 'HetrixTools blacklist check only supports IP lookups',
+            'queried_at': datetime.now(timezone.utc).isoformat()
+        }
+
+    def _live_ip_lookup(self, ip: str) -> Dict[str, Any]:
+        """Live HetrixTools blacklist check"""
+        import httpx
+        try:
+            # Determine if IPv4 or IPv6
+            ip_type = 'ipv6' if ':' in ip else 'ipv4'
+
+            response = httpx.get(
+                f"https://api.hetrixtools.com/v2/{self.api_key}/blacklist-check/{ip_type}/{ip}/",
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+
+                blacklisted_count = data.get('blacklisted_count', 0)
+                blacklists_checked = data.get('blacklist_check_count', 0)
+                blacklisted_on = []
+
+                # Extract blacklist names where IP is listed
+                for bl_name, bl_status in data.get('blacklisted_on', {}).items():
+                    if bl_status == 1:
+                        blacklisted_on.append(bl_name)
+
+                # Determine threat level
+                if blacklisted_count >= 5:
+                    threat_level = 'malicious'
+                elif blacklisted_count >= 2:
+                    threat_level = 'suspicious'
+                elif blacklisted_count >= 1:
+                    threat_level = 'suspicious'
+                else:
+                    threat_level = 'clean'
+
+                return {
+                    'service': self.service_name,
+                    'indicator': ip,
+                    'type': 'ip',
+                    'blacklisted_count': blacklisted_count,
+                    'blacklists_checked': blacklists_checked,
+                    'blacklisted_on': blacklisted_on,
+                    'links': data.get('links', {}),
+                    'threat_level': threat_level,
+                    'queried_at': datetime.now(timezone.utc).isoformat()
+                }
+            elif response.status_code == 429:
+                logger.warning("HetrixTools rate limit reached")
+            else:
+                logger.warning(f"HetrixTools returned status {response.status_code}")
+        except Exception as e:
+            logger.error(f"HetrixTools IP lookup failed: {e}")
+        return self._mock_ip_lookup(ip)
+
+
 class PulseDiveAdapter(BaseTIAdapter):
     """PulseDive threat intelligence adapter"""
-    
+
     service_name = "pulsedive"
     api_key_env = "PULSEDIVE_API_KEY"
     
@@ -643,7 +868,9 @@ ADAPTERS = {
     'phishtank': PhishTankAdapter,
     'google_safebrowsing': GoogleSafeBrowsingAdapter,
     'otx': OTXAdapter,
-    'pulsedive': PulseDiveAdapter
+    'pulsedive': PulseDiveAdapter,
+    'honeypot': ProjectHoneypotAdapter,
+    'hetrixtools': HetrixToolsAdapter
 }
 
 
