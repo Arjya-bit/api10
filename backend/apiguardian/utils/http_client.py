@@ -82,65 +82,85 @@ class HTTPClient:
         params: Dict[str, str] = None,
         data: Any = None,
         json: Dict = None,
-        allow_redirects: bool = True
+        allow_redirects: bool = True,
+        timeout: float = None
     ) -> HTTPResponse:
         """Make an HTTP request with retry logic"""
-        client = await self._get_client()
-        
-        for attempt in range(self.max_retries + 1):
-            await self._rate_limit_wait()
-            
-            try:
-                start_time = time.time()
-                
-                response = await client.request(
-                    method=method,
-                    url=url,
-                    headers=headers,
-                    params=params,
-                    data=data,
-                    json=json,
-                    follow_redirects=allow_redirects
-                )
-                
-                elapsed_ms = (time.time() - start_time) * 1000
-                
-                # Try to parse JSON
-                json_body = None
+        # Use provided timeout or fall back to instance default
+        request_timeout = timeout if timeout is not None else self.timeout
+
+        # Create a client with the appropriate timeout for this request
+        client = httpx.AsyncClient(
+            timeout=httpx.Timeout(request_timeout),
+            follow_redirects=True,
+            headers={'User-Agent': self.user_agent}
+        )
+
+        try:
+            for attempt in range(self.max_retries + 1):
+                await self._rate_limit_wait()
+
                 try:
-                    json_body = response.json()
-                except Exception:
-                    pass
-                
-                return HTTPResponse(
-                    status_code=response.status_code,
-                    headers=dict(response.headers),
-                    body=response.text,
-                    json_body=json_body,
-                    elapsed_ms=elapsed_ms
-                )
-                
-            except httpx.TimeoutException as e:
-                logger.warning(f"Request timeout ({attempt + 1}/{self.max_retries + 1}): {url}")
-                if attempt == self.max_retries:
-                    return HTTPResponse(
-                        status_code=0,
-                        headers={},
-                        body="",
-                        error=f"Timeout: {str(e)}"
+                    start_time = time.time()
+
+                    response = await client.request(
+                        method=method,
+                        url=url,
+                        headers=headers,
+                        params=params,
+                        data=data,
+                        json=json,
+                        follow_redirects=allow_redirects
                     )
-                await asyncio.sleep(self.retry_delay * (attempt + 1))
                 
-            except httpx.RequestError as e:
-                logger.warning(f"Request error ({attempt + 1}/{self.max_retries + 1}): {url} - {e}")
-                if attempt == self.max_retries:
+                    elapsed_ms = (time.time() - start_time) * 1000
+
+                    # Try to parse JSON
+                    json_body = None
+                    try:
+                        json_body = response.json()
+                    except Exception:
+                        pass
+
                     return HTTPResponse(
-                        status_code=0,
-                        headers={},
-                        body="",
-                        error=f"Request error: {str(e)}"
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                        body=response.text,
+                        json_body=json_body,
+                        elapsed_ms=elapsed_ms
                     )
-                await asyncio.sleep(self.retry_delay * (attempt + 1))
+
+                except httpx.TimeoutException as e:
+                    logger.warning(f"Request timeout ({attempt + 1}/{self.max_retries + 1}): {url}")
+                    if attempt == self.max_retries:
+                        return HTTPResponse(
+                            status_code=0,
+                            headers={},
+                            body="",
+                            error=f"Timeout: {str(e)}"
+                        )
+                    await asyncio.sleep(self.retry_delay * (attempt + 1))
+
+                except httpx.RequestError as e:
+                    logger.warning(f"Request error ({attempt + 1}/{self.max_retries + 1}): {url} - {e}")
+                    if attempt == self.max_retries:
+                        return HTTPResponse(
+                            status_code=0,
+                            headers={},
+                            body="",
+                            error=f"Request error: {str(e)}"
+                        )
+                    await asyncio.sleep(self.retry_delay * (attempt + 1))
+
+            # Fallback return in case loop completes without returning
+            return HTTPResponse(
+                status_code=0,
+                headers={},
+                body="",
+                error="All retry attempts exhausted"
+            )
+        finally:
+            await client.aclose()
     
     async def get(self, url: str, **kwargs) -> HTTPResponse:
         """HTTP GET request"""
