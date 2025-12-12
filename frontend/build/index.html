@@ -126,6 +126,41 @@
         .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
         .status-dot.connected { background: var(--accent); }
         .status-dot.disconnected { background: var(--critical); }
+
+        /* DNS Propagation Map Styles */
+        .dns-map-container { position: relative; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .dns-world-map { width: 100%; height: 450px; background: linear-gradient(180deg, #0d1117 0%, #161b22 100%); position: relative; }
+        .dns-map-svg { width: 100%; height: 100%; }
+        .dns-marker { cursor: pointer; transition: all 0.3s ease; }
+        .dns-marker:hover { transform: scale(1.3); }
+        .dns-marker.success { fill: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); }
+        .dns-marker.error { fill: var(--critical); filter: drop-shadow(0 0 4px var(--critical)); }
+        .dns-marker.pending { fill: var(--text-secondary); animation: pulse 1s infinite; }
+        .dns-marker.timeout { fill: var(--high); filter: drop-shadow(0 0 4px var(--high)); }
+        .dns-summary-bar { display: flex; gap: 1rem; padding: 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
+        .dns-summary-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .dns-summary-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dns-summary-dot.success { background: var(--accent); }
+        .dns-summary-dot.error { background: var(--critical); }
+        .dns-summary-dot.timeout { background: var(--high); }
+        .dns-propagation-bar { height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; flex: 1; min-width: 150px; }
+        .dns-propagation-fill { height: 100%; background: linear-gradient(90deg, var(--critical), var(--high), var(--accent)); border-radius: 3px; transition: width 0.5s ease; }
+        .dns-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; padding: 1rem; max-height: 350px; overflow-y: auto; }
+        .dns-result-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; }
+        .dns-result-card.success { border-left: 3px solid var(--accent); }
+        .dns-result-card.error { border-left: 3px solid var(--critical); }
+        .dns-result-card.timeout { border-left: 3px solid var(--high); }
+        .dns-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .dns-result-server { font-weight: bold; font-family: monospace; color: var(--text-primary); }
+        .dns-result-location { font-size: 0.75rem; color: var(--text-secondary); }
+        .dns-result-records { font-family: monospace; font-size: 0.8rem; color: var(--accent); word-break: break-all; }
+        .dns-result-meta { display: flex; gap: 1rem; font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        .dns-tooltip { position: absolute; background: var(--bg-primary); border: 1px solid var(--accent); border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; z-index: 100; pointer-events: none; min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .dns-tooltip-header { font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .dns-tooltip-row { display: flex; justify-content: space-between; margin: 0.25rem 0; }
+        .dns-tooltip-label { color: var(--text-secondary); }
+        .dns-tooltip-value { color: var(--text-primary); font-family: monospace; }
+        .dns-record-badge { display: inline-block; padding: 0.15rem 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; font-size: 0.7rem; font-family: monospace; margin-right: 0.25rem; }
     </style>
 </head>
 <body>
@@ -150,6 +185,7 @@
             <button class="tab" onclick="showTab('workflows')">Workflows</button>
             <button class="tab" onclick="showTab('findings')">All Findings</button>
             <button class="tab" onclick="showTab('threatintel')">Threat Intel</button>
+            <button class="tab" onclick="showTab('dnspropagation')">DNS Propagation</button>
             <button class="tab" onclick="showTab('live')">Live Feed</button>
         </div>
         <div id="tab-plugins" class="tab-content active">
@@ -209,6 +245,31 @@
                 </div>
             </div>
             <div id="tiResults"><div class="empty-state"><div class="icon">🌐</div><p>Enter an indicator and click "Lookup" to check threat intelligence</p></div></div>
+        </div>
+        <div id="tab-dnspropagation" class="tab-content">
+            <div class="panel">
+                <div class="form-row">
+                    <input type="text" id="dnsDomain" placeholder="example.com" style="flex: 1;" />
+                    <select id="dnsRecordType">
+                        <option value="A">A (IPv4)</option>
+                        <option value="AAAA">AAAA (IPv6)</option>
+                        <option value="CNAME">CNAME</option>
+                        <option value="MX">MX (Mail)</option>
+                        <option value="NS">NS (Nameserver)</option>
+                        <option value="TXT">TXT</option>
+                        <option value="SOA">SOA</option>
+                        <option value="CAA">CAA</option>
+                    </select>
+                    <button class="btn" onclick="checkDNSPropagation()">Check Propagation</button>
+                </div>
+            </div>
+            <div id="dnsResults">
+                <div class="empty-state">
+                    <div class="icon">🗺️</div>
+                    <p>Enter a domain and click "Check Propagation" to see DNS records across global servers</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-secondary);">Similar to DNSChecker.org - Check if your DNS changes have propagated worldwide</p>
+                </div>
+            </div>
         </div>
         <div id="tab-live" class="tab-content">
             <div class="panel"><div class="live-feed" id="liveFeed"><div class="feed-item"><span class="time">[--:--:--]</span> Waiting for events...</div></div></div>
@@ -482,11 +543,362 @@
                     if (eventType === 'plugin.completed') { addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s)`); handlePluginCompleted(eventData); }
                     else if (eventType === 'plugin.failed') { addFeedItem(eventType, `${eventData.plugin} failed`); handlePluginFailed(eventData); }
                     else if (eventType === 'workflow.completed') { addFeedItem(eventType, 'Workflow completed'); fetchMetrics(); }
+                    else if (eventType === 'dns.propagation.completed') { addFeedItem(eventType, `DNS check for ${eventData.domain} completed`); handleDNSPropagationCompleted(eventData); }
+                    else if (eventType === 'dns.propagation.failed') { addFeedItem(eventType, `DNS check for ${eventData.domain} failed: ${eventData.error}`); }
                     else addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
                 } catch { addFeedItem('event', e.data); }
             };
         }
         
+        // DNS Propagation Map Functions
+        let dnsResults = null;
+        let dnsTooltip = null;
+
+        // World map path data (simplified)
+        const WORLD_MAP_PATH = "M2,77L2,69L3,67L5,68L6,67L8,68L8,66L11,64L13,65L14,63L16,64L18,62L20,63L20,61L23,60L25,61L26,59L28,60L28,58L31,57L33,58L34,56L36,57L36,55L39,54L41,55L42,53L44,54L44,52L47,51L49,52L50,50L52,51L52,49L55,48L57,49L58,47L60,48L60,46L63,45L65,46L66,44L68,45L68,43L71,42L73,43L74,41L76,42L76,40L79,39L81,40L82,38L84,39L84,37L87,36L89,37L90,35L92,36L92,34L95,33L97,34L98,32L100,33L100,31L103,30L105,31L106,29L108,30L108,28L111,27L113,28L114,26L116,27L116,25L119,24L121,25L122,23L124,24L124,22L127,21L129,22L130,20L132,21L132,19L135,18L137,19L138,17L140,18L140,16L143,15L145,16L146,14L148,15L148,13L151,12L153,13L154,11L156,12L156,10L159,9L161,10L162,8L164,9L164,7L167,6L169,7L170,5L172,6L172,4L175,3L177,4L178,2L180,3";
+
+        // Convert lat/lon to x/y coordinates for the map (Mercator-like projection)
+        function latLonToXY(lat, lon, width, height) {
+            // Map bounds
+            const lonMin = -180, lonMax = 180;
+            const latMin = -60, latMax = 85;
+
+            const x = ((lon - lonMin) / (lonMax - lonMin)) * width;
+            const latRad = lat * Math.PI / 180;
+            const mercN = Math.log(Math.tan((Math.PI / 4) + (latRad / 2)));
+            const latMinRad = latMin * Math.PI / 180;
+            const latMaxRad = latMax * Math.PI / 180;
+            const mercNMin = Math.log(Math.tan((Math.PI / 4) + (latMinRad / 2)));
+            const mercNMax = Math.log(Math.tan((Math.PI / 4) + (latMaxRad / 2)));
+            const y = height - ((mercN - mercNMin) / (mercNMax - mercNMin)) * height;
+
+            return { x: Math.max(10, Math.min(width - 10, x)), y: Math.max(10, Math.min(height - 10, y)) };
+        }
+
+        async function checkDNSPropagation() {
+            const domain = document.getElementById('dnsDomain').value.trim();
+            const recordType = document.getElementById('dnsRecordType').value;
+
+            if (!domain) {
+                alert('Please enter a domain');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('dnsResults').innerHTML = `
+                <div class="dns-map-container">
+                    <div class="dns-summary-bar">
+                        <span style="color: var(--accent);">Checking DNS propagation for <strong>${domain}</strong> (${recordType} records)...</span>
+                    </div>
+                    <div class="dns-world-map" style="display: flex; align-items: center; justify-content: center;">
+                        <div class="empty-state" style="padding: 2rem;">
+                            <div class="icon" style="animation: pulse 1s infinite;">🔍</div>
+                            <p>Querying ${70}+ DNS servers worldwide...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`${API_BASE}/dns/propagation`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ domain, record_type: recordType })
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.detail || 'DNS check failed');
+                }
+
+                dnsResults = await res.json();
+                renderDNSResults(dnsResults);
+                addFeedItem('dns.propagation', `Checked ${domain} (${recordType}) - ${dnsResults.summary.propagation_percentage}% propagated`);
+            } catch (e) {
+                console.error('DNS check error:', e);
+                document.getElementById('dnsResults').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>DNS propagation check failed: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderDNSResults(data) {
+            const container = document.getElementById('dnsResults');
+            const summary = data.summary;
+
+            // Calculate statistics
+            const successCount = data.results.filter(r => r.success && r.records.length > 0).length;
+            const errorCount = data.results.filter(r => !r.success || r.error).length;
+            const noRecordCount = data.results.filter(r => r.success && r.records.length === 0).length;
+
+            // Propagation status color
+            let statusColor = 'var(--accent)';
+            let statusText = 'Fully Propagated';
+            if (summary.propagation_percentage < 50) {
+                statusColor = 'var(--critical)';
+                statusText = 'Low Propagation';
+            } else if (summary.propagation_percentage < 90) {
+                statusColor = 'var(--high)';
+                statusText = 'Propagating...';
+            }
+
+            let html = `
+                <div class="dns-map-container">
+                    <div class="dns-summary-bar">
+                        <div class="dns-summary-item">
+                            <strong style="color: var(--accent);">${data.domain}</strong>
+                            <span class="dns-record-badge">${data.record_type}</span>
+                        </div>
+                        <div class="dns-summary-item">
+                            <div class="dns-summary-dot success"></div>
+                            <span>${successCount} Resolved</span>
+                        </div>
+                        <div class="dns-summary-item">
+                            <div class="dns-summary-dot error"></div>
+                            <span>${errorCount} Failed</span>
+                        </div>
+                        <div class="dns-summary-item">
+                            <span style="color: ${statusColor}; font-weight: bold;">${summary.propagation_percentage}% ${statusText}</span>
+                        </div>
+                        <div class="dns-propagation-bar">
+                            <div class="dns-propagation-fill" style="width: ${summary.propagation_percentage}%"></div>
+                        </div>
+                        <div class="dns-summary-item">
+                            <span style="color: var(--text-secondary);">Avg: ${summary.average_response_time_ms}ms</span>
+                        </div>
+                    </div>
+                    <div class="dns-world-map" id="dnsWorldMap">
+                        ${renderWorldMapSVG(data.results)}
+                    </div>
+                    <div style="padding: 1rem; border-top: 1px solid var(--border); background: var(--bg-tertiary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <h3 style="color: var(--accent); font-size: 0.9rem; font-family: monospace;">RESOLVED VALUES</h3>
+                            <span style="color: var(--text-secondary); font-size: 0.8rem;">${summary.unique_records.length} unique record(s)</span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${summary.unique_records.map(r => `<span class="dns-record-badge" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;">${r}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <h2 style="margin-top: 1.5rem;">Server Results</h2>
+                <div class="dns-results-grid">
+                    ${data.results.map(r => renderDNSResultCard(r)).join('')}
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            // Add event listeners for markers
+            data.results.forEach((result, i) => {
+                const marker = document.getElementById(`dns-marker-${i}`);
+                if (marker) {
+                    marker.addEventListener('mouseenter', (e) => showDNSTooltip(e, result));
+                    marker.addEventListener('mouseleave', hideDNSTooltip);
+                }
+            });
+        }
+
+        function renderWorldMapSVG(results) {
+            const width = 900;
+            const height = 450;
+
+            // Create SVG with world map background
+            let svg = `
+                <svg class="dns-map-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <radialGradient id="markerGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:var(--accent);stop-opacity:0.6"/>
+                            <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0"/>
+                        </radialGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- Grid lines -->
+                    <g stroke="#1a1a1a" stroke-width="0.5">
+                        ${[...Array(19)].map((_, i) => `<line x1="0" y1="${i * 25}" x2="${width}" y2="${i * 25}"/>`).join('')}
+                        ${[...Array(37)].map((_, i) => `<line x1="${i * 25}" y1="0" x2="${i * 25}" y2="${height}"/>`).join('')}
+                    </g>
+
+                    <!-- Continent outlines (simplified) -->
+                    <g fill="none" stroke="#2a2a2a" stroke-width="1">
+                        <!-- North America -->
+                        <path d="M 50 100 Q 100 80 150 90 Q 200 60 230 80 Q 250 100 240 140 Q 220 180 180 200 Q 140 210 100 190 Q 60 160 50 100"/>
+                        <!-- South America -->
+                        <path d="M 170 220 Q 200 230 210 280 Q 220 340 200 380 Q 170 400 150 370 Q 140 320 150 270 Q 160 230 170 220"/>
+                        <!-- Europe -->
+                        <path d="M 420 80 Q 480 70 520 90 Q 540 110 530 140 Q 500 150 460 140 Q 430 120 420 80"/>
+                        <!-- Africa -->
+                        <path d="M 430 160 Q 500 150 530 200 Q 540 280 500 350 Q 450 370 420 330 Q 400 260 430 160"/>
+                        <!-- Asia -->
+                        <path d="M 540 60 Q 650 50 750 80 Q 820 120 800 180 Q 750 220 680 200 Q 600 170 540 130 Q 520 100 540 60"/>
+                        <!-- Australia -->
+                        <path d="M 750 300 Q 820 290 850 320 Q 860 370 830 390 Q 780 400 750 370 Q 740 330 750 300"/>
+                    </g>
+
+                    <!-- DNS Server Markers -->
+                    <g>
+            `;
+
+            // Plot each DNS server result
+            results.forEach((result, i) => {
+                const pos = latLonToXY(result.lat, result.lon, width, height);
+                let markerClass = 'pending';
+                if (result.success && result.records.length > 0) {
+                    markerClass = 'success';
+                } else if (result.error && result.error.includes('Timeout')) {
+                    markerClass = 'timeout';
+                } else if (!result.success || result.error) {
+                    markerClass = 'error';
+                }
+
+                svg += `
+                    <circle
+                        id="dns-marker-${i}"
+                        class="dns-marker ${markerClass}"
+                        cx="${pos.x}"
+                        cy="${pos.y}"
+                        r="5"
+                        filter="url(#glow)"
+                    />
+                `;
+            });
+
+            svg += `
+                    </g>
+                </svg>
+            `;
+
+            return svg;
+        }
+
+        function renderDNSResultCard(result) {
+            let statusClass = 'success';
+            let statusIcon = '✓';
+
+            if (result.error && result.error.includes('Timeout')) {
+                statusClass = 'timeout';
+                statusIcon = '⏱';
+            } else if (!result.success || result.error) {
+                statusClass = 'error';
+                statusIcon = '✗';
+            } else if (result.records.length === 0) {
+                statusClass = 'timeout';
+                statusIcon = '−';
+            }
+
+            return `
+                <div class="dns-result-card ${statusClass}">
+                    <div class="dns-result-header">
+                        <div>
+                            <div class="dns-result-server">${result.server_name}</div>
+                            <div class="dns-result-location">${result.city}, ${result.location}</div>
+                        </div>
+                        <span style="color: var(--${statusClass === 'success' ? 'accent' : statusClass === 'error' ? 'critical' : 'high'}); font-size: 1.2rem;">${statusIcon}</span>
+                    </div>
+                    <div class="dns-result-records">
+                        ${result.records.length > 0 ? result.records.join('<br>') : (result.error || 'No records')}
+                    </div>
+                    <div class="dns-result-meta">
+                        <span>IP: ${result.server_ip}</span>
+                        <span>${result.response_time_ms}ms</span>
+                        ${result.ttl ? `<span>TTL: ${result.ttl}s</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showDNSTooltip(event, result) {
+            hideDNSTooltip();
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'dns-tooltip';
+            tooltip.id = 'dnsTooltip';
+
+            let statusText = 'Resolved';
+            let statusColor = 'var(--accent)';
+            if (result.error && result.error.includes('Timeout')) {
+                statusText = 'Timeout';
+                statusColor = 'var(--high)';
+            } else if (!result.success || result.error) {
+                statusText = 'Failed';
+                statusColor = 'var(--critical)';
+            } else if (result.records.length === 0) {
+                statusText = 'No Records';
+                statusColor = 'var(--high)';
+            }
+
+            tooltip.innerHTML = `
+                <div class="dns-tooltip-header">${result.server_name}</div>
+                <div class="dns-tooltip-row">
+                    <span class="dns-tooltip-label">Location:</span>
+                    <span class="dns-tooltip-value">${result.city}, ${result.country_code}</span>
+                </div>
+                <div class="dns-tooltip-row">
+                    <span class="dns-tooltip-label">IP:</span>
+                    <span class="dns-tooltip-value">${result.server_ip}</span>
+                </div>
+                <div class="dns-tooltip-row">
+                    <span class="dns-tooltip-label">Status:</span>
+                    <span class="dns-tooltip-value" style="color: ${statusColor}">${statusText}</span>
+                </div>
+                <div class="dns-tooltip-row">
+                    <span class="dns-tooltip-label">Response:</span>
+                    <span class="dns-tooltip-value">${result.response_time_ms}ms</span>
+                </div>
+                ${result.records.length > 0 ? `
+                    <div class="dns-tooltip-row" style="flex-direction: column; align-items: flex-start;">
+                        <span class="dns-tooltip-label">Records:</span>
+                        <span class="dns-tooltip-value" style="margin-top: 0.25rem; word-break: break-all; font-size: 0.75rem;">${result.records.slice(0, 3).join(', ')}${result.records.length > 3 ? '...' : ''}</span>
+                    </div>
+                ` : ''}
+                ${result.ttl ? `
+                    <div class="dns-tooltip-row">
+                        <span class="dns-tooltip-label">TTL:</span>
+                        <span class="dns-tooltip-value">${result.ttl}s</span>
+                    </div>
+                ` : ''}
+            `;
+
+            const mapContainer = document.getElementById('dnsWorldMap');
+            mapContainer.appendChild(tooltip);
+
+            // Position tooltip near the marker
+            const rect = event.target.getBoundingClientRect();
+            const mapRect = mapContainer.getBoundingClientRect();
+            let left = rect.left - mapRect.left + 15;
+            let top = rect.top - mapRect.top - 10;
+
+            // Keep tooltip within bounds
+            if (left + 220 > mapRect.width) left = rect.left - mapRect.left - 220;
+            if (top + 180 > mapRect.height) top = rect.top - mapRect.top - 180;
+            if (top < 10) top = 10;
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function hideDNSTooltip() {
+            const tooltip = document.getElementById('dnsTooltip');
+            if (tooltip) tooltip.remove();
+        }
+
+        // Handle WebSocket DNS propagation events
+        function handleDNSPropagationCompleted(data) {
+            if (data.domain === document.getElementById('dnsDomain').value.trim()) {
+                dnsResults = data;
+                renderDNSResults(data);
+            }
+        }
+
         fetchMetrics(); fetchPlugins(); connectWS(); setInterval(fetchMetrics, 10000);
     </script>
 </body>
