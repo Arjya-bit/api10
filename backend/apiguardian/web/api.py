@@ -26,6 +26,7 @@ from apiguardian.core.workflow_manager import workflow_manager
 from apiguardian.integrations.threatintel.adapters import get_adapter, ADAPTERS
 from apiguardian.integrations.siem.connectors import get_siem_connector, SIEM_CONNECTORS
 from apiguardian.integrations.messaging.notifiers import get_notifier, NOTIFIERS
+from apiguardian.modules.dns_checker import dns_checker, get_supported_record_types
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,11 @@ class WorkflowRequest(BaseModel):
 class PluginRunRequest(BaseModel):
     target: str
     config: Dict[str, Any] = {}
+
+
+class DNSPropagationRequest(BaseModel):
+    domain: str
+    record_type: str = "A"
 
 
 # Lifespan context manager
@@ -596,6 +602,99 @@ async def list_ti_services():
         }
         for name, cls in ADAPTERS.items()
     ]
+
+
+# DNS Propagation endpoints
+@api_router.post("/dns/propagation")
+async def check_dns_propagation(request: DNSPropagationRequest, background_tasks: BackgroundTasks):
+    """
+    Check DNS propagation for a domain across global DNS servers.
+    Similar to DNSChecker.org functionality.
+    """
+    try:
+        result = await dns_checker.check_propagation(
+            domain=request.domain,
+            record_type=request.record_type.upper()
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"DNS propagation check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"DNS check failed: {str(e)}")
+
+
+@api_router.get("/dns/propagation")
+async def check_dns_propagation_get(
+    domain: str = Query(..., description="Domain to check"),
+    record_type: str = Query("A", description="DNS record type")
+):
+    """
+    Check DNS propagation for a domain (GET method for easy testing).
+    """
+    try:
+        result = await dns_checker.check_propagation(
+            domain=domain,
+            record_type=record_type.upper()
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"DNS propagation check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"DNS check failed: {str(e)}")
+
+
+@api_router.get("/dns/servers")
+async def list_dns_servers():
+    """Get list of available DNS servers with their locations"""
+    return dns_checker.get_servers_list()
+
+
+@api_router.get("/dns/record-types")
+async def list_dns_record_types():
+    """Get list of supported DNS record types"""
+    return get_supported_record_types()
+
+
+@api_router.post("/dns/propagation/stream")
+async def check_dns_propagation_stream(request: DNSPropagationRequest):
+    """
+    Check DNS propagation and broadcast results via WebSocket.
+    Results are sent progressively as each server responds.
+    """
+    async def stream_results():
+        try:
+            result = await dns_checker.check_propagation(
+                domain=request.domain,
+                record_type=request.record_type.upper()
+            )
+            # Broadcast final results via WebSocket
+            await event_bus.publish(Event.create(
+                'dns.propagation.completed',
+                {
+                    'domain': request.domain,
+                    'record_type': request.record_type,
+                    'summary': result['summary'],
+                    'results': result['results']
+                }
+            ))
+        except Exception as e:
+            await event_bus.publish(Event.create(
+                'dns.propagation.failed',
+                {
+                    'domain': request.domain,
+                    'error': str(e)
+                }
+            ))
+
+    # Run in background and return immediately
+    asyncio.create_task(stream_results())
+    return {
+        "message": "DNS propagation check started",
+        "domain": request.domain,
+        "record_type": request.record_type
+    }
 
 
 # Integrations endpoints
