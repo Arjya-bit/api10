@@ -10,7 +10,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from apiguardian.core.plugin_manager import AnalyzerPlugin
-from apiguardian.utils.http_client import safe_http_client, HTTPResponse
 
 logger = logging.getLogger(__name__)
 

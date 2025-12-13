@@ -554,6 +554,14 @@ class EndpointDiscovery(ReconPlugin):
             logger.debug(f"Failed to probe {url}: {e}")
             return None
 
+    def _is_sensitive(self, path: str, response: Dict) -> bool:
+        """Check if endpoint might be sensitive"""
+        sensitive_patterns = [
+            'admin', 'debug', 'internal', 'config', 'settings',
+            'actuator', 'env', 'graphql', 'metrics'
+        ]
+        return any(p in path.lower() for p in sensitive_patterns)
+
     def _check_security_headers(self, headers: Dict[str, str]) -> Dict[str, bool]:
         """Check presence of security headers"""
         result = {}
