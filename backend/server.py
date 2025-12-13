@@ -2,13 +2,17 @@
 import os
 import sys
 import logging
+from pathlib import Path
+
+# Determine the backend directory (works in both production and Codespaces)
+BACKEND_DIR = Path(__file__).parent.resolve()
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
-load_dotenv('/app/backend/.env')
+load_dotenv(BACKEND_DIR / '.env')
 
 # Add the backend directory to path for imports
-sys.path.insert(0, '/app/backend')
+sys.path.insert(0, str(BACKEND_DIR))
 
 # Setup logging
 logging.basicConfig(
