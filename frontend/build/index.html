@@ -6,825 +6,302 @@
     <title>APIGuardian - Enterprise API Security Platform</title>
     <style>
         :root {
-            --bg-primary: #0f0f1a;
-            --bg-secondary: #1a1a2e;
-            --bg-tertiary: #16213e;
-            --bg-card: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0b0;
-            --accent: #00d4ff;
-            --accent-glow: rgba(0, 212, 255, 0.3);
-            --accent-secondary: #7c3aed;
-            --critical: #ff3860;
-            --high: #ff9f43;
-            --medium: #feca57;
-            --low: #54a0ff;
-            --info: #5f27cd;
-            --success: #00d26a;
-            --border: rgba(255, 255, 255, 0.1);
-            --glass: rgba(255, 255, 255, 0.05);
-            --map-ocean: #4a90d9;
-            --map-land: #3498db;
-            --marker-color: #f39c12;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111;
+            --bg-tertiary: #1a1a1a;
+            --bg-quaternary: #222;
+            --text-primary: #eee;
+            --text-secondary: #888;
+            --text-muted: #666;
+            --accent: #00ff94;
+            --accent-dim: rgba(0,255,148,0.15);
+            --critical: #ff2a6d;
+            --critical-dim: rgba(255,42,109,0.15);
+            --high: #ff9f1c;
+            --high-dim: rgba(255,159,28,0.15);
+            --medium: #f1c40f;
+            --medium-dim: rgba(241,196,15,0.15);
+            --low: #3498db;
+            --low-dim: rgba(52,152,219,0.15);
+            --info: #5865f2;
+            --info-dim: rgba(88,101,242,0.15);
+            --border: #333;
+            --border-light: #444;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg-primary);
-            background-image:
-                radial-gradient(ellipse at top left, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
         }
-
-        .container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
-
-        /* Header Styles */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 2rem;
-            background: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .logo-section { display: flex; align-items: center; gap: 1rem; }
-
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-
-        h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent-secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .meta {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.25rem;
-        }
-
-        .target-input {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-primary);
-            padding: 0.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .target-input input {
-            width: 320px;
-            padding: 0.75rem 1rem;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-
-        .target-input input:focus { outline: none; }
-        .target-input input::placeholder { color: var(--text-secondary); }
+        .container { max-width: 1800px; margin: 0 auto; padding: 1.5rem; }
+        h1 { color: var(--accent); font-size: 1.75rem; font-family: monospace; }
+        h2 { color: var(--text-primary); font-size: 1rem; margin: 1.5rem 0 0.75rem; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; }
+        h3 { color: var(--accent); font-size: 0.9rem; font-family: monospace; }
+        .meta { color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1.5rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
 
         /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.25rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--card-accent, var(--accent)), transparent);
-        }
-
-        .stat-card .label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .value {
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'SF Mono', 'Consolas', monospace;
-        }
-
-        .stat-card.critical { --card-accent: var(--critical); }
-        .stat-card.critical .value { color: var(--critical); text-shadow: 0 0 20px rgba(255, 56, 96, 0.5); }
-        .stat-card.high { --card-accent: var(--high); }
-        .stat-card.high .value { color: var(--high); text-shadow: 0 0 20px rgba(255, 159, 67, 0.5); }
-        .stat-card.medium { --card-accent: var(--medium); }
+        .stats-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+        @media (max-width: 1400px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; transition: border-color 0.2s; }
+        .stat-card:hover { border-color: var(--border-light); }
+        .stat-card .label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; }
+        .stat-card .value { font-size: 1.75rem; font-weight: bold; font-family: monospace; }
+        .stat-card .subvalue { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .stat-card.critical .value { color: var(--critical); }
+        .stat-card.high .value { color: var(--high); }
         .stat-card.medium .value { color: var(--medium); }
-        .stat-card.low { --card-accent: var(--low); }
         .stat-card.low .value { color: var(--low); }
-        .stat-card.total { --card-accent: var(--accent); }
-        .stat-card.total .value { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
+        .stat-card.total .value { color: var(--accent); }
+        .stat-card.score .value { color: var(--accent); }
+        .stat-card.risk-critical { border-left: 3px solid var(--critical); }
+        .stat-card.risk-high { border-left: 3px solid var(--high); }
+        .stat-card.risk-medium { border-left: 3px solid var(--medium); }
+        .stat-card.risk-low { border-left: 3px solid var(--accent); }
 
         /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            padding: 0.5rem;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 0.75rem 1.5rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .tab:hover { color: var(--text-primary); background: var(--glass); }
-
-        .tab.active {
-            color: var(--bg-primary);
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-
+        .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .tab { padding: 0.75rem 1.5rem; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.85rem; font-family: monospace; text-transform: uppercase; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+        .tab:hover { color: var(--text-primary); background: var(--bg-secondary); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content.active { display: block; }
 
         /* Panels */
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            backdrop-filter: blur(10px);
-        }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
 
-        .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
-
-        input, select {
-            padding: 0.75rem 1rem;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn.secondary { background: var(--bg-tertiary); box-shadow: none; }
-        .btn.small { padding: 0.5rem 1rem; font-size: 0.8rem; }
+        /* Forms */
+        .form-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; align-items: center; }
+        input, select { padding: 0.5rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-size: 0.85rem; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+        input::placeholder { color: var(--text-muted); }
+        .btn { padding: 0.5rem 1.25rem; background: var(--accent); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: all 0.2s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn.secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn.small { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
+        .btn.danger { background: var(--critical); }
 
         /* Severity Badges */
-        .severity {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-
-        .severity.critical { background: rgba(255, 56, 96, 0.2); color: var(--critical); border: 1px solid rgba(255, 56, 96, 0.3); }
-        .severity.high { background: rgba(255, 159, 67, 0.2); color: var(--high); border: 1px solid rgba(255, 159, 67, 0.3); }
-        .severity.medium { background: rgba(254, 202, 87, 0.2); color: var(--medium); border: 1px solid rgba(254, 202, 87, 0.3); }
-        .severity.low { background: rgba(84, 160, 255, 0.2); color: var(--low); border: 1px solid rgba(84, 160, 255, 0.3); }
-        .severity.info { background: rgba(95, 39, 205, 0.2); color: var(--info); border: 1px solid rgba(95, 39, 205, 0.3); }
+        .severity { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .severity.critical { background: var(--critical-dim); color: var(--critical); }
+        .severity.high { background: var(--high-dim); color: var(--high); }
+        .severity.medium { background: var(--medium-dim); color: var(--medium); }
+        .severity.low { background: var(--low-dim); color: var(--low); }
+        .severity.info { background: var(--info-dim); color: var(--info); }
 
         /* Results Container */
-        .results-container {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 1rem;
-            min-height: 500px;
-        }
+        .results-container { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; min-height: 600px; }
+        @media (max-width: 1000px) { .results-container { grid-template-columns: 1fr; } }
 
-        @media (max-width: 900px) { .results-container { grid-template-columns: 1fr; } }
-
-        .plugin-list {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .plugin-list-header {
-            padding: 1rem 1.25rem;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border);
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        .plugin-list-item {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .plugin-list-item:hover { background: var(--glass); }
-        .plugin-list-item.active { background: var(--glass); border-left: 3px solid var(--accent); }
-        .plugin-list-item .name { font-weight: 500; font-size: 0.9rem; }
-        .plugin-list-item .type { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
-        .plugin-list-item .status { width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); }
-        .plugin-list-item .status.running { background: var(--accent); animation: pulse 1s infinite; box-shadow: 0 0 10px var(--accent-glow); }
-        .plugin-list-item .status.completed { background: var(--success); }
+        /* Plugin List */
+        .plugin-list { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; max-height: 700px; overflow-y: auto; }
+        .plugin-list-header { padding: 0.75rem 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: bold; position: sticky; top: 0; z-index: 1; }
+        .plugin-list-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .plugin-list-item:hover { background: var(--bg-tertiary); }
+        .plugin-list-item.active { background: var(--bg-tertiary); border-left: 3px solid var(--accent); }
+        .plugin-list-item .name { font-family: monospace; font-size: 0.85rem; }
+        .plugin-list-item .type { font-size: 0.65rem; color: var(--text-secondary); }
+        .plugin-list-item .status { width: 8px; height: 8px; border-radius: 50%; background: var(--text-secondary); }
+        .plugin-list-item .status.running { background: var(--accent); animation: pulse 1s infinite; }
+        .plugin-list-item .status.completed { background: var(--accent); }
         .plugin-list-item .status.failed { background: var(--critical); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.9); } }
+        /* Results Panel */
+        .results-panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .results-header { padding: 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .results-header h3 { font-family: monospace; font-size: 1rem; color: var(--accent); }
+        .results-body { padding: 1rem; max-height: 650px; overflow-y: auto; }
 
-        .results-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .results-header {
-            padding: 1rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .results-header h3 { font-size: 1rem; color: var(--accent); }
-        .results-body { padding: 1rem; max-height: 600px; overflow-y: auto; }
-
-        /* Finding Cards */
-        .finding-card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-bottom: 0.75rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .finding-card:hover { border-color: var(--accent); }
+        /* Finding Cards - Enhanced */
+        .finding-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.75rem; overflow: hidden; transition: all 0.2s; }
+        .finding-card:hover { border-color: var(--border-light); }
         .finding-card.critical { border-left: 4px solid var(--critical); }
         .finding-card.high { border-left: 4px solid var(--high); }
         .finding-card.medium { border-left: 4px solid var(--medium); }
         .finding-card.low { border-left: 4px solid var(--low); }
         .finding-card.info { border-left: 4px solid var(--info); }
+        .finding-header { padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; gap: 1rem; }
+        .finding-header:hover { background: rgba(255,255,255,0.02); }
+        .finding-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 0.25rem; }
+        .finding-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); flex-wrap: wrap; align-items: center; }
+        .finding-meta-item { display: flex; align-items: center; gap: 0.25rem; }
+        .finding-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .finding-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.5rem; background: var(--bg-quaternary); border-radius: 3px; font-size: 0.7rem; font-family: monospace; }
+        .finding-badge.cwe { color: var(--high); }
+        .finding-badge.cvss { color: var(--critical); }
+        .finding-badge.owasp { color: var(--info); }
+        .finding-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
+        .finding-cvss { font-size: 1.25rem; font-weight: bold; font-family: monospace; }
+        .finding-cvss.critical { color: var(--critical); }
+        .finding-cvss.high { color: var(--high); }
+        .finding-cvss.medium { color: var(--medium); }
+        .finding-cvss.low { color: var(--low); }
 
-        .finding-header {
-            padding: 1rem 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            cursor: pointer;
-        }
-
-        .finding-header:hover { background: var(--glass); }
-        .finding-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; }
-        .finding-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-secondary); flex-wrap: wrap; }
-
-        .finding-details {
-            display: none;
-            padding: 1rem 1.25rem;
-            border-top: 1px solid var(--border);
-            background: rgba(0, 0, 0, 0.2);
-        }
-
+        /* Finding Details - Enhanced */
+        .finding-details { display: none; padding: 0; border-top: 1px solid var(--border); background: var(--bg-primary); }
         .finding-details.open { display: block; }
-        .finding-details dt { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-top: 0.75rem; font-weight: 600; }
-        .finding-details dd { font-size: 0.9rem; margin-top: 0.25rem; color: var(--text-secondary); }
+        .finding-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; }
+        @media (max-width: 800px) { .finding-details-grid { grid-template-columns: 1fr; } }
+        .finding-detail-section { background: var(--bg-secondary); border-radius: 4px; padding: 0.75rem; }
+        .finding-detail-section h4 { font-size: 0.7rem; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+        .finding-details dt { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.75rem; }
+        .finding-details dt:first-child { margin-top: 0; }
+        .finding-details dd { font-size: 0.85rem; margin-top: 0.25rem; font-family: monospace; word-break: break-word; line-height: 1.5; }
+        .finding-details pre { background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px; font-size: 0.75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; margin-top: 0.5rem; }
+        .finding-details .evidence-block { background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; }
+        .finding-details .recommendation-list { list-style: none; padding: 0; }
+        .finding-details .recommendation-list li { padding: 0.25rem 0 0.25rem 1rem; position: relative; font-size: 0.85rem; }
+        .finding-details .recommendation-list li::before { content: ""; position: absolute; left: 0; top: 0.6rem; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
 
-        /* Live Status Indicator */
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 210, 106, 0.1);
-            border: 1px solid rgba(0, 210, 106, 0.3);
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: var(--success);
-        }
+        /* Summary Stats in Results */
+        .results-summary { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 6px; }
+        .results-summary-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; background: var(--bg-secondary); border-radius: 4px; }
+        .results-summary-item .count { font-weight: bold; font-family: monospace; font-size: 1rem; }
+        .results-summary-item .label { font-size: 0.75rem; color: var(--text-secondary); }
+        .results-summary-item.critical .count { color: var(--critical); }
+        .results-summary-item.high .count { color: var(--high); }
+        .results-summary-item.medium .count { color: var(--medium); }
+        .results-summary-item.low .count { color: var(--low); }
+        .results-summary-item.info .count { color: var(--info); }
 
-        .live-indicator.disconnected {
-            background: rgba(255, 56, 96, 0.1);
-            border-color: rgba(255, 56, 96, 0.3);
-            color: var(--critical);
-        }
+        /* Workflow Progress */
+        .workflow-progress { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+        .workflow-step { flex: 1; min-width: 140px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; text-align: center; }
+        .workflow-step.completed { border-color: var(--accent); }
+        .workflow-step.running { border-color: var(--accent); animation: pulse 1s infinite; }
+        .workflow-step.failed { border-color: var(--critical); }
+        .workflow-step .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border); color: var(--text-primary); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-weight: bold; }
+        .workflow-step.completed .step-num, .workflow-step.running .step-num { background: var(--accent); color: #000; }
+        .workflow-step.failed .step-num { background: var(--critical); color: #fff; }
+        .workflow-step .step-name { font-size: 0.75rem; font-family: monospace; margin-bottom: 0.25rem; }
+        .workflow-step .step-findings { font-size: 0.7rem; color: var(--text-secondary); }
+        .workflow-step .step-findings.has-findings { color: var(--high); font-weight: bold; }
 
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: livePulse 2s infinite;
-        }
+        /* Workflow Results */
+        .workflow-results-container { margin-top: 1rem; }
+        .workflow-step-results { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.75rem; overflow: hidden; }
+        .workflow-step-header { padding: 0.75rem 1rem; background: var(--bg-quaternary); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .workflow-step-header:hover { background: var(--border); }
+        .workflow-step-body { display: none; padding: 1rem; max-height: 400px; overflow-y: auto; }
+        .workflow-step-body.open { display: block; }
 
-        @keyframes livePulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
-            50% { opacity: 0.5; box-shadow: 0 0 0 4px transparent; }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-secondary);
-        }
-
-        .empty-state .icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        /* ======================= */
-        /* DNS PROPAGATION MAP STYLES - DNSChecker.org Style */
-        /* ======================= */
-
-        .dns-map-container {
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .dns-map-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .dns-map-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .dns-map-title span {
-            color: #4a90d9;
-        }
-
-        .dns-map-menu {
-            width: 36px;
-            height: 36px;
-            background: #333;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .dns-map-menu span {
-            display: block;
-            width: 18px;
-            height: 2px;
-            background: #fff;
-            position: relative;
-        }
-
-        .dns-map-menu span::before,
-        .dns-map-menu span::after {
-            content: '';
-            position: absolute;
-            width: 18px;
-            height: 2px;
-            background: #fff;
-            left: 0;
-        }
-
-        .dns-map-menu span::before { top: -6px; }
-        .dns-map-menu span::after { top: 6px; }
-
-        .dns-world-map {
-            width: 100%;
-            height: 500px;
-            background: linear-gradient(180deg, #e8f4fc 0%, #f5f9fc 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .dns-map-svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .dns-map-legend {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            padding: 1rem;
-            background: #fff;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .dns-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #555;
-        }
-
-        .dns-legend-marker {
-            width: 20px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dns-legend-marker.location svg { fill: #f39c12; }
-        .dns-legend-marker.resolved { color: #27ae60; font-size: 1.2rem; }
-        .dns-legend-marker.not-resolved { color: #e74c3c; font-size: 1.2rem; }
-
-        .dns-marker {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-
-        .dns-marker:hover {
-            transform: scale(1.2);
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-        }
-
-        /* DNS Summary Bar */
-        .dns-summary-bar {
-            display: flex;
-            gap: 1.5rem;
-            padding: 1rem 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .dns-summary-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .dns-summary-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .dns-summary-dot.success { background: var(--success); box-shadow: 0 0 10px rgba(0, 210, 106, 0.5); }
-        .dns-summary-dot.error { background: var(--critical); box-shadow: 0 0 10px rgba(255, 56, 96, 0.5); }
-        .dns-summary-dot.timeout { background: var(--high); }
-
-        .dns-propagation-bar {
-            height: 8px;
-            background: var(--bg-primary);
-            border-radius: 4px;
-            overflow: hidden;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .dns-propagation-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--critical) 0%, var(--high) 50%, var(--success) 100%);
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-
-        /* DNS Results Grid */
-        .dns-results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-            padding: 1rem 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .dns-result-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .dns-result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .dns-result-card.success { border-left: 4px solid var(--success); }
-        .dns-result-card.error { border-left: 4px solid var(--critical); }
-        .dns-result-card.timeout { border-left: 4px solid var(--high); }
-
-        .dns-result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-        }
-
-        .dns-result-server { font-weight: 600; font-size: 0.95rem; }
-        .dns-result-location { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem; }
-        .dns-result-records { font-family: 'SF Mono', monospace; font-size: 0.85rem; color: var(--accent); word-break: break-all; }
-        .dns-result-meta { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.75rem; }
-
-        .dns-record-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-family: monospace;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        /* DNS Tooltip */
-        .dns-tooltip {
-            position: absolute;
-            background: #fff;
-            border-radius: 8px;
-            padding: 1rem;
-            font-size: 0.85rem;
-            z-index: 100;
-            pointer-events: none;
-            min-width: 220px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-            color: #333;
-        }
-
-        .dns-tooltip-header {
-            font-weight: 700;
-            color: #4a90d9;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .dns-tooltip-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.4rem 0;
-        }
-
-        .dns-tooltip-label { color: #888; }
-        .dns-tooltip-value { color: #333; font-family: monospace; font-weight: 500; }
-
-        /* Workflow Styles */
-        .workflow-progress {
-            display: flex;
-            gap: 0.75rem;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
-        }
-
-        .workflow-step {
-            flex: 1;
-            min-width: 140px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .workflow-step.completed { border-color: var(--success); background: rgba(0, 210, 106, 0.1); }
-        .workflow-step.running { border-color: var(--accent); animation: borderPulse 1.5s infinite; }
-        .workflow-step.failed { border-color: var(--critical); background: rgba(255, 56, 96, 0.1); }
-
-        @keyframes borderPulse {
-            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
-            50% { box-shadow: 0 0 0 4px var(--accent-glow); }
-        }
-
-        .workflow-step .step-num {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--border);
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.75rem;
-        }
-
-        .workflow-step.completed .step-num { background: var(--success); color: #fff; }
-        .workflow-step.running .step-num { background: var(--accent); color: #fff; }
-        .workflow-step .step-name { font-size: 0.8rem; font-weight: 500; }
-        .workflow-step .step-findings { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; }
-
-        /* Threat Intel Styles */
-        .ti-verdict {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-        }
-
-        .ti-verdict.clean { background: rgba(0, 210, 106, 0.1); border: 1px solid rgba(0, 210, 106, 0.3); }
-        .ti-verdict.suspicious { background: rgba(255, 159, 67, 0.1); border: 1px solid rgba(255, 159, 67, 0.3); }
-        .ti-verdict.malicious { background: rgba(255, 56, 96, 0.1); border: 1px solid rgba(255, 56, 96, 0.3); }
-
-        .ti-verdict-icon { font-size: 2.5rem; }
-        .ti-verdict-label { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
-        .ti-verdict.clean .ti-verdict-label { color: var(--success); }
+        /* Threat Intel */
+        .ti-verdict { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .ti-verdict.clean { background: var(--accent-dim); border: 1px solid var(--accent); }
+        .ti-verdict.suspicious { background: var(--high-dim); border: 1px solid var(--high); }
+        .ti-verdict.malicious { background: var(--critical-dim); border: 1px solid var(--critical); }
+        .ti-verdict-icon { font-size: 2rem; }
+        .ti-verdict-label { font-size: 1.25rem; font-weight: bold; text-transform: uppercase; }
+        .ti-verdict.clean .ti-verdict-label { color: var(--accent); }
         .ti-verdict.suspicious .ti-verdict-label { color: var(--high); }
         .ti-verdict.malicious .ti-verdict-label { color: var(--critical); }
-
-        .ti-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
-        }
-
-        .ti-detail {
-            background: var(--bg-primary);
-            padding: 1rem;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-        }
-
-        .ti-detail-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-        .ti-detail-value { font-size: 1.1rem; font-weight: 600; margin-top: 0.25rem; }
+        .ti-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+        .ti-detail { background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px; }
+        .ti-detail-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; }
+        .ti-detail-value { font-size: 1rem; font-weight: bold; margin-top: 0.25rem; }
 
         /* Live Feed */
-        .live-feed {
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: 'SF Mono', monospace;
-            font-size: 0.85rem;
-        }
+        .live-feed { max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; }
+        .feed-item { padding: 0.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 0.5rem; }
+        .feed-item .time { color: var(--text-muted); white-space: nowrap; }
+        .feed-item .type { color: var(--accent); white-space: nowrap; }
+        .feed-item .message { color: var(--text-primary); }
 
-        .feed-item {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            gap: 1rem;
-            transition: background 0.2s;
-        }
+        /* Empty State */
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
 
-        .feed-item:hover { background: var(--glass); }
-        .feed-item .time { color: var(--text-secondary); min-width: 80px; }
-        .feed-item .type { color: var(--accent); min-width: 150px; }
+        /* Status Indicators */
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
+        .status-dot.connected { background: var(--accent); }
+        .status-dot.disconnected { background: var(--critical); }
 
-        /* Section Headers */
-        h2 {
-            color: var(--text-primary);
-            font-size: 1rem;
-            margin: 1.5rem 0 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        /* Export Buttons */
+        .export-buttons { display: flex; gap: 0.5rem; }
 
-        h2::before {
-            content: '';
-            display: block;
-            width: 4px;
-            height: 20px;
-            background: linear-gradient(180deg, var(--accent), var(--accent-secondary));
-            border-radius: 2px;
-        }
+        /* Compliance */
+        .compliance-category { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.5rem; overflow: hidden; }
+        .compliance-category.compliant { border-left: 4px solid var(--accent); }
+        .compliance-category.partial { border-left: 4px solid var(--medium); }
+        .compliance-category.non_compliant { border-left: 4px solid var(--critical); }
+        .compliance-header { padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .compliance-header:hover { background: var(--bg-quaternary); }
+        .compliance-status { padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .compliance-status.compliant { background: var(--accent-dim); color: var(--accent); }
+        .compliance-status.partial { background: var(--medium-dim); color: var(--medium); }
+        .compliance-status.non_compliant { background: var(--critical-dim); color: var(--critical); }
+
+        /* DNS Propagation Map Styles */
+        .dns-map-container { position: relative; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .dns-world-map { width: 100%; height: 450px; background: linear-gradient(180deg, #0d1117 0%, #161b22 100%); position: relative; }
+        .dns-map-svg { width: 100%; height: 100%; }
+        .dns-marker { cursor: pointer; transition: all 0.3s ease; }
+        .dns-marker:hover { transform: scale(1.3); }
+        .dns-marker.success { fill: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); }
+        .dns-marker.error { fill: var(--critical); filter: drop-shadow(0 0 4px var(--critical)); }
+        .dns-marker.pending { fill: var(--text-secondary); animation: pulse 1s infinite; }
+        .dns-marker.timeout { fill: var(--high); filter: drop-shadow(0 0 4px var(--high)); }
+        .dns-summary-bar { display: flex; gap: 1rem; padding: 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
+        .dns-summary-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .dns-summary-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dns-summary-dot.success { background: var(--accent); }
+        .dns-summary-dot.error { background: var(--critical); }
+        .dns-summary-dot.timeout { background: var(--high); }
+        .dns-propagation-bar { height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; flex: 1; min-width: 150px; }
+        .dns-propagation-fill { height: 100%; background: linear-gradient(90deg, var(--critical), var(--high), var(--accent)); border-radius: 3px; transition: width 0.5s ease; }
+        .dns-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; padding: 1rem; max-height: 350px; overflow-y: auto; }
+        .dns-result-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; }
+        .dns-result-card.success { border-left: 3px solid var(--accent); }
+        .dns-result-card.error { border-left: 3px solid var(--critical); }
+        .dns-result-card.timeout { border-left: 3px solid var(--high); }
+        .dns-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .dns-result-server { font-weight: bold; font-family: monospace; color: var(--text-primary); }
+        .dns-result-location { font-size: 0.75rem; color: var(--text-secondary); }
+        .dns-result-records { font-family: monospace; font-size: 0.8rem; color: var(--accent); word-break: break-all; }
+        .dns-result-meta { display: flex; gap: 1rem; font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        .dns-tooltip { position: absolute; background: var(--bg-primary); border: 1px solid var(--accent); border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; z-index: 100; pointer-events: none; min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .dns-tooltip-header { font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .dns-tooltip-row { display: flex; justify-content: space-between; margin: 0.25rem 0; }
+        .dns-tooltip-label { color: var(--text-secondary); }
+        .dns-tooltip-value { color: var(--text-primary); font-family: monospace; }
+        .dns-record-badge { display: inline-block; padding: 0.15rem 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; font-size: 0.7rem; font-family: monospace; margin-right: 0.25rem; }
 
         /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-primary); border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo-section">
-                <div class="logo-icon">🛡️</div>
-                <div>
-                    <h1>API GUARDIAN</h1>
-                    <p class="meta">Enterprise API Security Platform</p>
-                </div>
+            <div>
+                <h1>API GUARDIAN</h1>
+                <p class="meta">Enterprise API Security Testing Platform v2.0 | <span class="status-dot" id="ws-dot"></span><span id="ws-status">Connecting...</span></p>
             </div>
-            <div class="target-input">
-                <span style="color: var(--text-secondary); padding-left: 0.5rem;">🎯</span>
-                <input type="text" id="globalTarget" placeholder="https://api.example.com" />
-            </div>
-            <div class="live-indicator" id="connectionStatus">
-                <div class="live-dot"></div>
-                <span id="ws-status">Connecting...</span>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" id="globalTarget" placeholder="https://api.example.com" style="width: 350px" />
+                <button class="btn secondary small" onclick="exportAllFindings()">Export</button>
             </div>
         </div>
 
         <div class="stats-grid">
+            <div class="stat-card total" id="risk-card">
+                <div class="label">Risk Rating</div>
+                <div class="value" id="riskRating">LOW</div>
+                <div class="subvalue">Security Score: <span id="score">100</span></div>
+            </div>
             <div class="stat-card total">
                 <div class="label">Total Findings</div>
                 <div class="value" id="total">0</div>
+                <div class="subvalue"><span id="openFindings">0</span> open</div>
             </div>
             <div class="stat-card critical">
                 <div class="label">Critical</div>
@@ -842,21 +319,24 @@
                 <div class="label">Low/Info</div>
                 <div class="value" id="low">0</div>
             </div>
-            <div class="stat-card total">
-                <div class="label">Security Score</div>
-                <div class="value" id="score">100</div>
+            <div class="stat-card">
+                <div class="label">Scans</div>
+                <div class="value" id="running">0</div>
+                <div class="subvalue">running</div>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('plugins')">🔌 Security Plugins</button>
-            <button class="tab" onclick="showTab('workflows')">⚡ Workflows</button>
-            <button class="tab" onclick="showTab('findings')">🔍 All Findings</button>
-            <button class="tab" onclick="showTab('threatintel')">🌐 Threat Intel</button>
-            <button class="tab" onclick="showTab('dnspropagation')">🗺️ Live DNS Map</button>
-            <button class="tab" onclick="showTab('live')">📡 Live Feed</button>
+            <button class="tab active" onclick="showTab('plugins')">Security Plugins</button>
+            <button class="tab" onclick="showTab('workflows')">Workflows</button>
+            <button class="tab" onclick="showTab('findings')">All Findings</button>
+            <button class="tab" onclick="showTab('compliance')">Compliance</button>
+            <button class="tab" onclick="showTab('threatintel')">Threat Intel</button>
+            <button class="tab" onclick="showTab('dnspropagation')">DNS Propagation</button>
+            <button class="tab" onclick="showTab('live')">Live Feed</button>
         </div>
 
+        <!-- Security Plugins Tab -->
         <div id="tab-plugins" class="tab-content active">
             <div class="results-container">
                 <div class="plugin-list">
@@ -866,75 +346,116 @@
                 <div class="results-panel">
                     <div class="results-header">
                         <h3 id="selectedPluginName">Select a Plugin</h3>
-                        <button class="btn small" id="runPluginBtn" onclick="runSelectedPlugin()" disabled>▶ Run Plugin</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn small secondary" id="viewResultsBtn" onclick="viewPluginResults()" style="display: none;">View Last Results</button>
+                            <button class="btn small" id="runPluginBtn" onclick="runSelectedPlugin()" disabled>Run Plugin</button>
+                        </div>
                     </div>
                     <div class="results-body" id="pluginResults">
                         <div class="empty-state">
-                            <div class="icon">🔌</div>
+                            <div class="icon">🔍</div>
                             <p>Select a plugin from the list and click "Run Plugin" to see results</p>
+                            <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted);">All findings will display with full details including CWE, CVSS, evidence, and recommendations</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Workflows Tab -->
         <div id="tab-workflows" class="tab-content">
             <div class="panel">
                 <h2 style="margin-top: 0;">Workflow Templates</h2>
                 <div class="form-row">
                     <select id="workflowTemplate" style="flex: 1;">
-                        <option value="quick_scan">⚡ Quick Security Scan (3 steps)</option>
-                        <option value="full_scan">🔒 Full Security Assessment (10 steps)</option>
-                        <option value="api_pentest">🎯 API Penetration Test (7 steps)</option>
-                        <option value="compliance_check">📋 Compliance Check (4 steps)</option>
+                        <option value="quick_scan">Quick Security Scan (3 steps)</option>
+                        <option value="full_scan">Full Security Assessment (10 steps)</option>
+                        <option value="api_pentest">API Penetration Test (7 steps)</option>
+                        <option value="compliance_check">Compliance Check (4 steps)</option>
                     </select>
-                    <button class="btn" onclick="startWorkflow()">▶ Start Workflow</button>
+                    <button class="btn" onclick="startWorkflow()">Start Workflow</button>
                 </div>
             </div>
             <div id="workflowResults">
                 <div class="empty-state">
                     <div class="icon">⚡</div>
                     <p>Select a workflow template and click "Start Workflow" to begin</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted);">Workflows run multiple plugins in sequence and collect all findings</p>
                 </div>
             </div>
         </div>
 
+        <!-- All Findings Tab -->
         <div id="tab-findings" class="tab-content">
             <div class="form-row">
                 <select id="severityFilter" onchange="fetchFindings()">
                     <option value="">All Severities</option>
-                    <option value="critical">🔴 Critical</option>
-                    <option value="high">🟠 High</option>
-                    <option value="medium">🟡 Medium</option>
-                    <option value="low">🔵 Low</option>
-                    <option value="info">🟣 Info</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                    <option value="info">Info</option>
                 </select>
-                <button class="btn secondary" onclick="fetchFindings()">🔄 Refresh</button>
+                <select id="statusFilter" onchange="fetchFindings()">
+                    <option value="">All Status</option>
+                    <option value="open">Open</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="false_positive">False Positive</option>
+                </select>
+                <input type="text" id="searchFilter" placeholder="Search findings..." oninput="debounceSearch()" style="flex: 1;" />
+                <button class="btn secondary" onclick="fetchFindings()">Refresh</button>
+                <div class="export-buttons">
+                    <button class="btn small secondary" onclick="exportFindings('json')">JSON</button>
+                    <button class="btn small secondary" onclick="exportFindings('csv')">CSV</button>
+                    <button class="btn small secondary" onclick="exportFindings('sarif')">SARIF</button>
+                </div>
             </div>
+            <div id="findingsSummary"></div>
             <div id="findingsList"></div>
         </div>
 
+        <!-- Compliance Tab -->
+        <div id="tab-compliance" class="tab-content">
+            <div class="panel">
+                <div class="form-row">
+                    <select id="complianceFramework">
+                        <option value="owasp">OWASP Top 10 2021</option>
+                        <option value="pci_dss">PCI DSS</option>
+                        <option value="hipaa">HIPAA</option>
+                    </select>
+                    <button class="btn" onclick="generateComplianceReport()">Generate Report</button>
+                </div>
+            </div>
+            <div id="complianceResults">
+                <div class="empty-state">
+                    <div class="icon">📋</div>
+                    <p>Select a compliance framework and generate a report</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Threat Intel Tab -->
         <div id="tab-threatintel" class="tab-content">
             <div class="panel">
                 <div class="form-row">
                     <input type="text" id="tiIndicator" placeholder="IP, URL, or Hash" style="flex: 1;" />
                     <select id="tiType">
-                        <option value="ip">🌐 IP Address</option>
-                        <option value="url">🔗 URL</option>
-                        <option value="hash">📝 File Hash</option>
+                        <option value="ip">IP Address</option>
+                        <option value="url">URL</option>
+                        <option value="hash">File Hash</option>
                     </select>
                     <select id="tiService">
-                        <option value="all">🔍 All Services</option>
+                        <option value="all">All Services (Aggregated)</option>
                         <option value="virustotal">VirusTotal</option>
                         <option value="abuseipdb">AbuseIPDB</option>
                         <option value="otx">AlienVault OTX</option>
                         <option value="pulsedive">PulseDive</option>
                     </select>
                     <select id="tiMode">
-                        <option value="live">📡 Live</option>
-                        <option value="mock">🧪 Mock</option>
+                        <option value="live">Live</option>
+                        <option value="mock">Mock</option>
                     </select>
-                    <button class="btn" onclick="lookupTI()">🔍 Lookup</button>
+                    <button class="btn" onclick="lookupTI()">Lookup</button>
                 </div>
             </div>
             <div id="tiResults">
@@ -945,6 +466,7 @@
             </div>
         </div>
 
+        <!-- DNS Propagation Tab -->
         <div id="tab-dnspropagation" class="tab-content">
             <div class="panel">
                 <div class="form-row">
@@ -959,50 +481,24 @@
                         <option value="SOA">SOA</option>
                         <option value="CAA">CAA</option>
                     </select>
-                    <button class="btn" onclick="checkDNSPropagation()">🌍 Check Propagation</button>
+                    <button class="btn" onclick="checkDNSPropagation()">Check Propagation</button>
                 </div>
             </div>
             <div id="dnsResults">
-                <div class="dns-map-container">
-                    <div class="dns-map-header">
-                        <div class="dns-map-title">DNS Propagation Map by <span>APIGuardian</span></div>
-                        <div class="dns-map-menu"><span></span></div>
-                    </div>
-                    <div class="dns-world-map" id="dnsWorldMap">
-                        ${renderInitialMap()}
-                    </div>
-                    <div class="dns-map-legend">
-                        <div class="dns-legend-item">
-                            <div class="dns-legend-marker location">
-                                <svg viewBox="0 0 24 32" width="20" height="26">
-                                    <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z"/>
-                                </svg>
-                            </div>
-                            <span>Server Location</span>
-                        </div>
-                        <div class="dns-legend-item">
-                            <div class="dns-legend-marker resolved">✓</div>
-                            <span>Resolved</span>
-                        </div>
-                        <div class="dns-legend-item">
-                            <div class="dns-legend-marker not-resolved">✗</div>
-                            <span>Not Resolved</span>
-                        </div>
-                    </div>
+                <div class="empty-state">
+                    <div class="icon">🗺️</div>
+                    <p>Enter a domain and click "Check Propagation" to see DNS records across global servers</p>
                 </div>
-                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary);">
-                    Enter a domain above and click "Check Propagation" to see live DNS records from 80+ global servers
-                </p>
             </div>
         </div>
 
+        <!-- Live Feed Tab -->
         <div id="tab-live" class="tab-content">
             <div class="panel">
                 <div class="live-feed" id="liveFeed">
                     <div class="feed-item">
                         <span class="time">[--:--:--]</span>
-                        <span class="type">[system]</span>
-                        <span>Waiting for events...</span>
+                        <span class="message">Waiting for events...</span>
                     </div>
                 </div>
             </div>
@@ -1012,141 +508,83 @@
     <script>
         const API_BASE = '/api';
         const WS_PROTOCOL = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let ws = null, plugins = [], selectedPlugin = null, allFindings = [], currentWorkflow = null, pluginResults = {};
+        let ws = null;
+        let plugins = [];
+        let selectedPlugin = null;
+        let allFindings = [];
+        let currentWorkflow = null;
+        let pluginResults = {};
+        let searchTimeout = null;
 
-        // Render initial map with world outline
-        function renderInitialMap() {
-            return `
-                <svg class="dns-map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8f4fc"/>
-                            <stop offset="100%" style="stop-color:#d4e9f7"/>
-                        </linearGradient>
-                        <filter id="landShadow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.1"/>
-                        </filter>
-                    </defs>
-
-                    <!-- Ocean background -->
-                    <rect width="1000" height="500" fill="url(#oceanGradient)"/>
-
-                    <!-- World Map - Detailed Continents -->
-                    <g fill="#4a90d9" filter="url(#landShadow)">
-                        <!-- North America -->
-                        <path d="M 50 120 Q 60 80 120 60 Q 180 50 230 70 Q 260 60 280 80 Q 300 100 290 130 Q 270 150 260 180 Q 240 200 220 210 Q 200 220 180 220 Q 160 230 150 250 Q 140 270 130 260 Q 100 240 80 200 Q 60 170 50 120 Z"/>
-                        <!-- Greenland -->
-                        <path d="M 320 50 Q 380 40 400 60 Q 410 90 390 110 Q 360 120 330 100 Q 310 80 320 50 Z"/>
-                        <!-- South America -->
-                        <path d="M 200 280 Q 230 270 250 290 Q 270 320 280 360 Q 275 400 260 430 Q 240 460 210 450 Q 180 430 170 390 Q 165 350 175 310 Q 185 280 200 280 Z"/>
-                        <!-- Europe -->
-                        <path d="M 440 80 Q 470 70 510 80 Q 540 90 560 110 Q 570 130 550 150 Q 520 160 490 155 Q 460 150 440 130 Q 430 110 440 80 Z"/>
-                        <!-- UK -->
-                        <path d="M 420 90 Q 435 85 440 100 Q 445 115 430 120 Q 415 115 420 90 Z"/>
-                        <!-- Africa -->
-                        <path d="M 460 180 Q 500 170 540 190 Q 570 220 580 270 Q 575 330 550 380 Q 520 420 480 410 Q 450 390 440 340 Q 435 290 450 240 Q 455 200 460 180 Z"/>
-                        <!-- Middle East -->
-                        <path d="M 560 150 Q 600 140 630 160 Q 650 180 640 210 Q 610 230 580 220 Q 560 200 560 150 Z"/>
-                        <!-- Russia/Asia -->
-                        <path d="M 560 60 Q 650 40 750 50 Q 850 60 900 90 Q 930 120 920 160 Q 900 180 850 170 Q 800 175 750 160 Q 700 150 660 140 Q 620 130 580 120 Q 560 100 560 60 Z"/>
-                        <!-- India -->
-                        <path d="M 660 200 Q 700 190 720 220 Q 730 260 710 290 Q 680 300 660 280 Q 650 250 660 200 Z"/>
-                        <!-- Southeast Asia -->
-                        <path d="M 750 200 Q 780 190 810 210 Q 830 240 820 270 Q 790 280 760 260 Q 745 230 750 200 Z"/>
-                        <!-- China/East Asia -->
-                        <path d="M 750 120 Q 800 100 850 120 Q 880 150 870 180 Q 840 200 800 190 Q 760 175 750 120 Z"/>
-                        <!-- Japan -->
-                        <path d="M 890 130 Q 910 120 920 140 Q 925 165 910 180 Q 895 175 890 130 Z"/>
-                        <!-- Indonesia -->
-                        <path d="M 780 300 Q 820 295 850 305 Q 870 320 860 340 Q 830 350 800 340 Q 775 325 780 300 Z"/>
-                        <!-- Australia -->
-                        <path d="M 820 360 Q 880 350 920 380 Q 940 420 920 450 Q 880 470 840 460 Q 800 440 810 400 Q 815 375 820 360 Z"/>
-                        <!-- New Zealand -->
-                        <path d="M 960 430 Q 975 420 980 440 Q 985 465 970 475 Q 955 470 960 430 Z"/>
-                    </g>
-
-                    <!-- Sample markers showing coverage -->
-                    <g class="sample-markers" opacity="0.6">
-                        ${generateSampleMarkers()}
-                    </g>
-                </svg>
-            `;
-        }
-
-        function generateSampleMarkers() {
-            // Sample global DNS server locations
-            const locations = [
-                {lat: 37.7749, lon: -122.4194}, // San Francisco
-                {lat: 40.7128, lon: -74.0060},  // New York
-                {lat: 51.5074, lon: -0.1278},   // London
-                {lat: 48.8566, lon: 2.3522},    // Paris
-                {lat: 52.5200, lon: 13.4050},   // Berlin
-                {lat: 35.6762, lon: 139.6503},  // Tokyo
-                {lat: 31.2304, lon: 121.4737},  // Shanghai
-                {lat: 1.3521, lon: 103.8198},   // Singapore
-                {lat: -33.8688, lon: 151.2093}, // Sydney
-                {lat: 19.4326, lon: -99.1332},  // Mexico City
-                {lat: -23.5505, lon: -46.6333}, // São Paulo
-                {lat: 55.7558, lon: 37.6173},   // Moscow
-                {lat: 28.6139, lon: 77.2090},   // New Delhi
-                {lat: -26.2041, lon: 28.0473},  // Johannesburg
-                {lat: 25.2048, lon: 55.2708},   // Dubai
-            ];
-
-            return locations.map(loc => {
-                const pos = latLonToXY(loc.lat, loc.lon, 1000, 500);
-                return `
-                    <g transform="translate(${pos.x - 8}, ${pos.y - 24})">
-                        <path d="M8 0C3.6 0 0 3.6 0 8c0 6 8 14 8 14s8-8 8-14c0-4.4-3.6-8-8-8z" fill="#f39c12"/>
-                        <circle cx="8" cy="8" r="3" fill="#fff"/>
-                    </g>
-                `;
-            }).join('');
-        }
-
+        // ========== TAB MANAGEMENT ==========
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
             document.getElementById(`tab-${tabName}`).classList.add('active');
             if (tabName === 'findings') fetchFindings();
+            if (tabName === 'compliance') generateComplianceReport();
         }
 
+        // ========== METRICS ==========
         async function fetchMetrics() {
             try {
                 const res = await fetch(`${API_BASE}/metrics`);
                 const data = await res.json();
+
                 document.getElementById('total').textContent = data.findings?.total || 0;
                 document.getElementById('critical').textContent = data.findings?.critical || 0;
                 document.getElementById('high').textContent = data.findings?.high || 0;
-                document.getElementById('medium').textContent = (data.findings?.total || 0) - (data.findings?.critical || 0) - (data.findings?.high || 0);
-                document.getElementById('low').textContent = 0;
+                document.getElementById('medium').textContent = data.findings?.medium || 0;
+                document.getElementById('low').textContent = (data.findings?.low || 0) + (data.findings?.info || 0);
+                document.getElementById('running').textContent = data.scans?.running || 0;
                 document.getElementById('score').textContent = data.security_score || 100;
-            } catch(e) { console.error('Metrics error:', e); }
+                document.getElementById('openFindings').textContent = data.findings?.open || 0;
+
+                // Update risk rating
+                const riskRating = (data.risk_rating || 'low').toUpperCase();
+                document.getElementById('riskRating').textContent = riskRating;
+                const riskCard = document.getElementById('risk-card');
+                riskCard.className = 'stat-card total risk-' + (data.risk_rating || 'low');
+            } catch(e) {
+                console.error('Metrics error:', e);
+            }
         }
 
+        // ========== PLUGINS ==========
         async function fetchPlugins() {
             try {
                 const res = await fetch(`${API_BASE}/plugins`);
                 plugins = await res.json();
                 renderPluginsList();
-            } catch(e) { console.error('Plugins error:', e); }
+            } catch(e) {
+                console.error('Plugins error:', e);
+            }
         }
 
         function renderPluginsList() {
             const list = document.getElementById('pluginsList');
-            const grouped = plugins.reduce((acc, p) => { if (!acc[p.type]) acc[p.type] = []; acc[p.type].push(p); return acc; }, {});
+            const grouped = plugins.reduce((acc, p) => {
+                if (!acc[p.type]) acc[p.type] = [];
+                acc[p.type].push(p);
+                return acc;
+            }, {});
+
             let html = '';
             for (const [type, items] of Object.entries(grouped)) {
-                html += `<div class="plugin-list-header" style="background: var(--bg-primary); font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">${type}s</div>`;
+                html += `<div class="plugin-list-header" style="background: var(--bg-primary); font-size: 0.7rem; color: var(--accent);">${type.toUpperCase()}S</div>`;
                 for (const p of items) {
-                    html += `<div class="plugin-list-item ${selectedPlugin?.name === p.name ? 'active' : ''}" onclick="selectPlugin('${p.type}', '${p.name}')">
-                        <div>
-                            <div class="name">${p.name}</div>
-                            <div class="type">${p.description.slice(0, 45)}...</div>
+                    const hasResults = pluginResults[p.name] && pluginResults[p.name].length > 0;
+                    html += `
+                        <div class="plugin-list-item ${selectedPlugin?.name === p.name ? 'active' : ''}" onclick="selectPlugin('${p.type}', '${p.name}')">
+                            <div>
+                                <div class="name">${p.name}</div>
+                                <div class="type">${p.description.slice(0, 50)}${p.description.length > 50 ? '...' : ''}</div>
+                                ${hasResults ? `<div class="type" style="color: var(--accent);">${pluginResults[p.name].length} findings</div>` : ''}
+                            </div>
+                            <div class="status ${p.status || ''}"></div>
                         </div>
-                        <div class="status ${p.status || ''}"></div>
-                    </div>`;
+                    `;
                 }
             }
             list.innerHTML = html;
@@ -1156,36 +594,71 @@
             selectedPlugin = plugins.find(p => p.type === type && p.name === name);
             document.getElementById('selectedPluginName').textContent = selectedPlugin.name;
             document.getElementById('runPluginBtn').disabled = false;
+
+            // Show view results button if there are cached results
+            const viewBtn = document.getElementById('viewResultsBtn');
+            if (pluginResults[name] && pluginResults[name].length > 0) {
+                viewBtn.style.display = 'inline-block';
+            } else {
+                viewBtn.style.display = 'none';
+            }
+
             renderPluginsList();
+
             document.getElementById('pluginResults').innerHTML = `
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--accent); margin-bottom: 0.75rem; font-size: 1.1rem;">${selectedPlugin.name}</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">${selectedPlugin.description}</p>
-                    <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; margin-bottom: 1.5rem;">
-                        <span><strong style="color: var(--accent);">Type:</strong> ${selectedPlugin.type}</span>
-                        <span><strong style="color: var(--accent);">Version:</strong> ${selectedPlugin.version}</span>
+                <div style="padding: 1rem;">
+                    <h3 style="color: var(--accent); margin-bottom: 0.75rem;">${selectedPlugin.name}</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">${selectedPlugin.description}</p>
+                    <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; flex-wrap: wrap;">
+                        <span><strong>Type:</strong> ${selectedPlugin.type}</span>
+                        <span><strong>Version:</strong> ${selectedPlugin.version}</span>
+                        <span><strong>Enabled:</strong> ${selectedPlugin.enabled ? 'Yes' : 'No'}</span>
                     </div>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem; padding: 1rem; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid var(--accent);">
-                        💡 Enter a target URL above and click "Run Plugin" to execute this security check.
+                    <p style="margin-top: 1rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 4px; font-size: 0.85rem;">
+                        Enter a target URL above and click "Run Plugin" to execute. Results will include:
+                        <br>• Issue title and detailed description
+                        <br>• CWE ID and name with OWASP mapping
+                        <br>• CVSS score and severity rating
+                        <br>• Evidence and proof of concept
+                        <br>• Remediation recommendations
                     </p>
                 </div>
             `;
         }
 
+        function viewPluginResults() {
+            if (selectedPlugin && pluginResults[selectedPlugin.name]) {
+                displayPluginFindings(
+                    pluginResults[selectedPlugin.name],
+                    selectedPlugin.name,
+                    document.getElementById('globalTarget').value || 'cached'
+                );
+            }
+        }
+
         async function runSelectedPlugin() {
             const target = document.getElementById('globalTarget').value;
-            if (!target) { alert('Please enter a target URL'); return; }
-            if (!selectedPlugin) { alert('Please select a plugin'); return; }
+            if (!target) {
+                alert('Please enter a target URL');
+                return;
+            }
+            if (!selectedPlugin) {
+                alert('Please select a plugin');
+                return;
+            }
+
             document.getElementById('pluginResults').innerHTML = `
                 <div class="empty-state">
                     <div class="icon" style="animation: pulse 1s infinite;">⚡</div>
-                    <p>Running <strong>${selectedPlugin.name}</strong> against<br><code style="color: var(--accent)">${target}</code></p>
+                    <p>Running ${selectedPlugin.name} against ${target}...</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted);">Results will appear automatically when complete</p>
                 </div>
             `;
+
             const plugin = plugins.find(p => p.name === selectedPlugin.name);
             if (plugin) plugin.status = 'running';
             renderPluginsList();
-            pluginResults[selectedPlugin.name] = null;
+
             try {
                 await fetch(`${API_BASE}/plugins/${selectedPlugin.type}/${selectedPlugin.name}/run`, {
                     method: 'POST',
@@ -1194,19 +667,37 @@
                 });
                 addFeedItem('plugin.started', `${selectedPlugin.name} started on ${target}`);
             } catch(e) {
-                document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Error running plugin</p></div>`;
+                document.getElementById('pluginResults').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Error running plugin: ${e.message}</p>
+                    </div>
+                `;
                 if (plugin) plugin.status = 'failed';
                 renderPluginsList();
             }
         }
 
         function handlePluginCompleted(data) {
-            const pluginName = data.plugin, findings = data.findings || [];
+            const pluginName = data.plugin;
+            const findings = data.findings || [];
+
+            // Store results
             pluginResults[pluginName] = findings;
+
             const plugin = plugins.find(p => p.name === pluginName);
             if (plugin) plugin.status = 'completed';
             renderPluginsList();
-            if (selectedPlugin && selectedPlugin.name === pluginName) displayPluginFindings(findings, pluginName, data.target);
+
+            if (selectedPlugin && selectedPlugin.name === pluginName) {
+                displayPluginFindings(findings, pluginName, data.target);
+            }
+
+            // Update view results button
+            if (selectedPlugin && selectedPlugin.name === pluginName) {
+                document.getElementById('viewResultsBtn').style.display = findings.length > 0 ? 'inline-block' : 'none';
+            }
+
             fetchMetrics();
         }
 
@@ -1214,82 +705,177 @@
             const plugin = plugins.find(p => p.name === data.plugin);
             if (plugin) plugin.status = 'failed';
             renderPluginsList();
+
             if (selectedPlugin && selectedPlugin.name === data.plugin) {
-                document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Plugin failed: ${data.error || 'Unknown error'}</p></div>`;
+                document.getElementById('pluginResults').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Plugin failed: ${data.error || 'Unknown error'}</p>
+                    </div>
+                `;
             }
         }
 
         function displayPluginFindings(findings, pluginName, target) {
             const resultsDiv = document.getElementById('pluginResults');
+
             if (!findings || findings.length === 0) {
                 resultsDiv.innerHTML = `
-                    <div style="padding: 1.5rem;">
+                    <div style="padding: 1rem;">
                         <div class="ti-verdict clean">
                             <div class="ti-verdict-icon">✓</div>
                             <div>
                                 <div class="ti-verdict-label">No Issues Found</div>
-                                <div style="font-size: 0.9rem; color: var(--text-secondary);">${pluginName} completed without detecting issues on ${target || 'target'}.</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                                    ${pluginName} completed without detecting issues on ${target || 'target'}.
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
                 return;
             }
-            const counts = findings.reduce((acc, f) => { const sev = (f.severity || 'info').toLowerCase(); acc[sev] = (acc[sev] || 0) + 1; return acc; }, {});
-            let summaryHtml = '<div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">';
-            if (counts.critical) summaryHtml += `<span class="severity critical">${counts.critical} Critical</span>`;
-            if (counts.high) summaryHtml += `<span class="severity high">${counts.high} High</span>`;
-            if (counts.medium) summaryHtml += `<span class="severity medium">${counts.medium} Medium</span>`;
-            if (counts.low) summaryHtml += `<span class="severity low">${counts.low} Low</span>`;
-            if (counts.info) summaryHtml += `<span class="severity info">${counts.info} Info</span>`;
-            summaryHtml += '</div>';
-            let html = `<div style="padding: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h4 style="color: var(--accent); font-size: 1rem;">${findings.length} Finding(s) from ${pluginName}</h4>
-                    <span style="color: var(--text-secondary); font-size: 0.85rem;">Target: ${target || 'N/A'}</span>
-                </div>
-                ${summaryHtml}`;
-            for (const f of findings) html += createFindingCard(f);
+
+            // Calculate summary
+            const counts = findings.reduce((acc, f) => {
+                const sev = (f.severity || 'info').toLowerCase();
+                acc[sev] = (acc[sev] || 0) + 1;
+                return acc;
+            }, {});
+
+            let html = `
+                <div style="padding: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="color: var(--accent);">${findings.length} Finding(s) from ${pluginName}</h4>
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">Target: ${target || 'N/A'}</span>
+                    </div>
+                    <div class="results-summary">
+                        ${counts.critical ? `<div class="results-summary-item critical"><span class="count">${counts.critical}</span><span class="label">Critical</span></div>` : ''}
+                        ${counts.high ? `<div class="results-summary-item high"><span class="count">${counts.high}</span><span class="label">High</span></div>` : ''}
+                        ${counts.medium ? `<div class="results-summary-item medium"><span class="count">${counts.medium}</span><span class="label">Medium</span></div>` : ''}
+                        ${counts.low ? `<div class="results-summary-item low"><span class="count">${counts.low}</span><span class="label">Low</span></div>` : ''}
+                        ${counts.info ? `<div class="results-summary-item info"><span class="count">${counts.info}</span><span class="label">Info</span></div>` : ''}
+                    </div>
+            `;
+
+            for (const f of findings) {
+                html += createDetailedFindingCard(f);
+            }
+
             html += '</div>';
             resultsDiv.innerHTML = html;
         }
 
-        function createFindingCard(f) {
+        function createDetailedFindingCard(f) {
             const sev = (f.severity || 'info').toLowerCase();
+            const cvssScore = f.cvss_score || 0;
+            const cvssClass = cvssScore >= 9 ? 'critical' : cvssScore >= 7 ? 'high' : cvssScore >= 4 ? 'medium' : 'low';
+            const cardId = 'finding-' + (f.id || f.fingerprint || Math.random().toString(36).substr(2, 9));
+
+            // Parse recommendations into list if it contains bullet points
+            let recommendationHtml = f.recommendation || 'Review and remediate this finding';
+            if (recommendationHtml.includes('•') || recommendationHtml.includes('\n')) {
+                const items = recommendationHtml.split(/[•\n]/).filter(item => item.trim());
+                recommendationHtml = `<ul class="recommendation-list">${items.map(item => `<li>${item.trim()}</li>`).join('')}</ul>`;
+            }
+
             return `
-                <div class="finding-card ${sev}" onclick="toggleFinding(this)">
-                    <div class="finding-header">
-                        <div>
+                <div class="finding-card ${sev}" id="${cardId}">
+                    <div class="finding-header" onclick="toggleFinding('${cardId}')">
+                        <div style="flex: 1;">
                             <div class="finding-title">${f.issue || 'Unknown Issue'}</div>
                             <div class="finding-meta">
                                 <span class="severity ${sev}">${sev}</span>
-                                <span>📍 ${f.endpoint || 'N/A'}</span>
-                                <span>🏷️ ${f.category || 'General'}</span>
+                                <span class="finding-meta-item">📍 ${f.endpoint || 'N/A'}</span>
+                                <span class="finding-meta-item">🔧 ${f.method || 'GET'}</span>
+                                <span class="finding-meta-item">🏷️ ${f.category || 'General'}</span>
+                            </div>
+                            <div class="finding-badges">
+                                ${f.cwe_id ? `<span class="finding-badge cwe">${f.cwe_id}${f.cwe_name ? ': ' + f.cwe_name.substring(0, 30) : ''}</span>` : ''}
+                                ${f.owasp_category ? `<span class="finding-badge owasp">${f.owasp_category.owasp_id}</span>` : ''}
+                                ${f.plugin_name ? `<span class="finding-badge">Plugin: ${f.plugin_name}</span>` : ''}
                             </div>
                         </div>
+                        <div class="finding-right">
+                            ${cvssScore > 0 ? `<div class="finding-cvss ${cvssClass}">${cvssScore.toFixed(1)}</div>` : ''}
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">CVSS</span>
+                        </div>
                     </div>
-                    <div class="finding-details">
-                        <dl>
-                            <dt>Description</dt>
-                            <dd>${f.description || f.issue || 'N/A'}</dd>
-                            <dt>Evidence</dt>
-                            <dd>${f.evidence || 'N/A'}</dd>
-                            <dt>CWE ID</dt>
-                            <dd>${f.cwe_id || 'N/A'}</dd>
-                            <dt>Recommendation</dt>
-                            <dd>${f.recommendation || 'Review and remediate'}</dd>
-                        </dl>
+                    <div class="finding-details" id="${cardId}-details">
+                        <div class="finding-details-grid">
+                            <div class="finding-detail-section">
+                                <h4>Description</h4>
+                                <p style="font-size: 0.85rem; line-height: 1.6;">${f.description || f.issue || 'No description available'}</p>
+
+                                <h4 style="margin-top: 1rem;">Recommendation</h4>
+                                ${recommendationHtml}
+                            </div>
+                            <div class="finding-detail-section">
+                                <h4>Technical Details</h4>
+                                <dl>
+                                    <dt>CWE ID</dt>
+                                    <dd>${f.cwe_id || 'N/A'}${f.cwe_name ? ' - ' + f.cwe_name : ''}</dd>
+
+                                    <dt>OWASP Category</dt>
+                                    <dd>${f.owasp_category ? `${f.owasp_category.owasp_id}: ${f.owasp_category.owasp_name}` : 'N/A'}</dd>
+
+                                    <dt>CVSS Score</dt>
+                                    <dd style="color: var(--${cvssClass});">${cvssScore.toFixed(1)} (${cvssClass.toUpperCase()})</dd>
+
+                                    <dt>Fingerprint</dt>
+                                    <dd style="font-size: 0.75rem;">${f.fingerprint || 'N/A'}</dd>
+
+                                    <dt>Discovered</dt>
+                                    <dd>${f.discovered_at ? new Date(f.discovered_at).toLocaleString() : 'N/A'}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                        ${f.evidence ? `
+                            <div style="padding: 0 1rem 1rem 1rem;">
+                                <div class="finding-detail-section">
+                                    <h4>Evidence</h4>
+                                    <div class="evidence-block">${escapeHtml(f.evidence)}</div>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
         }
 
-        function toggleFinding(el) { el.querySelector('.finding-details').classList.toggle('open'); }
+        function toggleFinding(cardId) {
+            const details = document.getElementById(cardId + '-details');
+            if (details) {
+                details.classList.toggle('open');
+            }
+        }
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== WORKFLOWS ==========
         async function startWorkflow() {
-            const target = document.getElementById('globalTarget').value, template = document.getElementById('workflowTemplate').value;
-            if (!target) { alert('Please enter a target URL'); return; }
-            document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Starting workflow...</p></div></div>`;
+            const target = document.getElementById('globalTarget').value;
+            const template = document.getElementById('workflowTemplate').value;
+
+            if (!target) {
+                alert('Please enter a target URL');
+                return;
+            }
+
+            document.getElementById('workflowResults').innerHTML = `
+                <div class="panel">
+                    <div class="empty-state">
+                        <div class="icon" style="animation: pulse 1s infinite;">⚡</div>
+                        <p>Starting workflow...</p>
+                    </div>
+                </div>
+            `;
+
             try {
                 const res = await fetch(`${API_BASE}/workflows`, {
                     method: 'POST',
@@ -1298,37 +884,97 @@
                 });
                 const data = await res.json();
                 currentWorkflow = data.workflow_id;
-                addFeedItem('workflow.started', `${template} started`);
+                addFeedItem('workflow.started', `${template} workflow started`);
                 pollWorkflowStatus();
             } catch(e) {
-                document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">❌</div><p>Error starting workflow</p></div></div>`;
+                document.getElementById('workflowResults').innerHTML = `
+                    <div class="panel">
+                        <div class="empty-state">
+                            <div class="icon">❌</div>
+                            <p>Error starting workflow: ${e.message}</p>
+                        </div>
+                    </div>
+                `;
             }
         }
 
         async function pollWorkflowStatus() {
             if (!currentWorkflow) return;
+
             try {
                 const res = await fetch(`${API_BASE}/workflows/${currentWorkflow}`);
                 const workflow = await res.json();
                 displayWorkflowProgress(workflow);
-                if (workflow.status === 'running') setTimeout(pollWorkflowStatus, 2000);
-                else fetchMetrics();
-            } catch(e) { console.error('Workflow poll error:', e); }
+
+                if (workflow.status === 'running') {
+                    setTimeout(pollWorkflowStatus, 2000);
+                } else {
+                    fetchMetrics();
+                }
+            } catch(e) {
+                console.error('Workflow poll error:', e);
+            }
         }
 
         function displayWorkflowProgress(workflow) {
+            const steps = workflow.steps || [];
+
             let stepsHtml = '<div class="workflow-progress">';
-            workflow.steps.forEach((step, i) => {
-                const statusClass = step.status === 'completed' ? 'completed' : step.status === 'running' ? 'running' : step.status === 'failed' ? 'failed' : '';
-                stepsHtml += `<div class="workflow-step ${statusClass}">
-                    <div class="step-num">${i + 1}</div>
-                    <div class="step-name">${step.name}</div>
-                    <div class="step-findings">${step.status}</div>
-                </div>`;
+            steps.forEach((step, i) => {
+                const statusClass = step.status === 'completed' ? 'completed' :
+                                   step.status === 'running' ? 'running' :
+                                   step.status === 'failed' ? 'failed' : '';
+                const findingsCount = step.findings_count || (step.findings ? step.findings.length : 0);
+
+                stepsHtml += `
+                    <div class="workflow-step ${statusClass}">
+                        <div class="step-num">${i + 1}</div>
+                        <div class="step-name">${step.name}</div>
+                        <div class="step-findings ${findingsCount > 0 ? 'has-findings' : ''}">${findingsCount} findings</div>
+                    </div>
+                `;
             });
             stepsHtml += '</div>';
-            const statusIcon = workflow.status === 'completed' ? '✓' : workflow.status === 'failed' ? '✗' : '⚡';
-            const statusColor = workflow.status === 'completed' ? 'var(--success)' : workflow.status === 'failed' ? 'var(--critical)' : 'var(--accent)';
+
+            const statusIcon = workflow.status === 'completed' ? '✓' :
+                              workflow.status === 'failed' ? '✗' : '⚡';
+            const statusColor = workflow.status === 'completed' ? 'var(--accent)' :
+                               workflow.status === 'failed' ? 'var(--critical)' : 'var(--medium)';
+
+            // Build step results with findings
+            let stepResultsHtml = '';
+            if (workflow.status === 'completed' || workflow.status === 'failed') {
+                stepResultsHtml = '<div class="workflow-results-container"><h3 style="margin-bottom: 1rem;">Step Results</h3>';
+
+                for (const step of steps) {
+                    const stepFindings = step.findings || [];
+                    const stepId = 'step-' + step.id;
+
+                    stepResultsHtml += `
+                        <div class="workflow-step-results">
+                            <div class="workflow-step-header" onclick="toggleWorkflowStep('${stepId}')">
+                                <div>
+                                    <strong>${step.name}</strong>
+                                    <span style="color: var(--text-secondary); font-size: 0.8rem; margin-left: 0.5rem;">${step.plugin}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    ${stepFindings.length > 0 ? `<span class="severity ${getMostSevereFinding(stepFindings)}">${stepFindings.length} findings</span>` : '<span style="color: var(--accent);">✓ Clean</span>'}
+                                    <span style="color: var(--text-muted);">▼</span>
+                                </div>
+                            </div>
+                            <div class="workflow-step-body" id="${stepId}">
+                                ${stepFindings.length > 0 ? stepFindings.map(f => createDetailedFindingCard(f)).join('') : '<p style="color: var(--text-secondary);">No issues detected in this step.</p>'}
+                            </div>
+                        </div>
+                    `;
+                }
+                stepResultsHtml += '</div>';
+            }
+
+            // Summary
+            const totalFindings = workflow.total_findings || 0;
+            const severityBreakdown = workflow.findings_by_severity || {};
+
             document.getElementById('workflowResults').innerHTML = `
                 <div class="panel">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -1336,35 +982,220 @@
                         <span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${workflow.status.toUpperCase()}</span>
                     </div>
                     ${stepsHtml}
+                    ${totalFindings > 0 ? `
+                        <div class="results-summary" style="margin-top: 1rem;">
+                            <div class="results-summary-item"><span class="count">${totalFindings}</span><span class="label">Total</span></div>
+                            ${severityBreakdown.critical ? `<div class="results-summary-item critical"><span class="count">${severityBreakdown.critical}</span><span class="label">Critical</span></div>` : ''}
+                            ${severityBreakdown.high ? `<div class="results-summary-item high"><span class="count">${severityBreakdown.high}</span><span class="label">High</span></div>` : ''}
+                            ${severityBreakdown.medium ? `<div class="results-summary-item medium"><span class="count">${severityBreakdown.medium}</span><span class="label">Medium</span></div>` : ''}
+                            ${severityBreakdown.low ? `<div class="results-summary-item low"><span class="count">${severityBreakdown.low}</span><span class="label">Low</span></div>` : ''}
+                            ${severityBreakdown.info ? `<div class="results-summary-item info"><span class="count">${severityBreakdown.info}</span><span class="label">Info</span></div>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
+                ${stepResultsHtml}
             `;
+        }
+
+        function toggleWorkflowStep(stepId) {
+            const body = document.getElementById(stepId);
+            if (body) {
+                body.classList.toggle('open');
+            }
+        }
+
+        function getMostSevereFinding(findings) {
+            const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
+            for (const sev of severityOrder) {
+                if (findings.some(f => (f.severity || 'info').toLowerCase() === sev)) {
+                    return sev;
+                }
+            }
+            return 'info';
+        }
+
+        // ========== FINDINGS ==========
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(fetchFindings, 300);
         }
 
         async function fetchFindings() {
             const severity = document.getElementById('severityFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const search = document.getElementById('searchFilter').value;
+
+            let url = `${API_BASE}/findings?limit=200`;
+            if (severity) url += `&severity=${severity}`;
+            if (status) url += `&status=${status}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
             try {
-                const res = await fetch(severity ? `${API_BASE}/findings?severity=${severity}` : `${API_BASE}/findings`);
+                const res = await fetch(url);
                 allFindings = await res.json();
                 displayAllFindings();
-            } catch(e) { console.error('Findings error:', e); }
+            } catch(e) {
+                console.error('Findings error:', e);
+            }
         }
 
         function displayAllFindings() {
             const container = document.getElementById('findingsList');
+            const summaryContainer = document.getElementById('findingsSummary');
+
             if (!allFindings || allFindings.length === 0) {
-                container.innerHTML = `<div class="empty-state"><div class="icon">🔐</div><p>No findings yet. Run a scan to detect issues.</p></div>`;
+                summaryContainer.innerHTML = '';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔐</div>
+                        <p>No findings yet. Run a scan to detect issues.</p>
+                    </div>
+                `;
                 return;
             }
-            container.innerHTML = allFindings.map(f => createFindingCard(f)).join('');
+
+            // Calculate summary
+            const counts = allFindings.reduce((acc, f) => {
+                const sev = (f.severity || 'info').toLowerCase();
+                acc[sev] = (acc[sev] || 0) + 1;
+                return acc;
+            }, {});
+
+            summaryContainer.innerHTML = `
+                <div class="results-summary" style="margin-bottom: 1rem;">
+                    <div class="results-summary-item"><span class="count">${allFindings.length}</span><span class="label">Total</span></div>
+                    ${counts.critical ? `<div class="results-summary-item critical"><span class="count">${counts.critical}</span><span class="label">Critical</span></div>` : ''}
+                    ${counts.high ? `<div class="results-summary-item high"><span class="count">${counts.high}</span><span class="label">High</span></div>` : ''}
+                    ${counts.medium ? `<div class="results-summary-item medium"><span class="count">${counts.medium}</span><span class="label">Medium</span></div>` : ''}
+                    ${counts.low ? `<div class="results-summary-item low"><span class="count">${counts.low}</span><span class="label">Low</span></div>` : ''}
+                    ${counts.info ? `<div class="results-summary-item info"><span class="count">${counts.info}</span><span class="label">Info</span></div>` : ''}
+                </div>
+            `;
+
+            container.innerHTML = allFindings.map(f => createDetailedFindingCard(f)).join('');
         }
 
+        async function exportFindings(format) {
+            try {
+                const severity = document.getElementById('severityFilter').value;
+                const res = await fetch(`${API_BASE}/findings/export`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        format,
+                        severity_filter: severity ? [severity] : null,
+                        include_evidence: true
+                    })
+                });
+
+                if (format === 'csv') {
+                    const blob = await res.blob();
+                    downloadBlob(blob, `findings.${format}`);
+                } else {
+                    const data = await res.json();
+                    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                    downloadBlob(blob, `findings.${format === 'sarif' ? 'sarif.json' : 'json'}`);
+                }
+            } catch(e) {
+                console.error('Export error:', e);
+                alert('Export failed: ' + e.message);
+            }
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportAllFindings() {
+            exportFindings('json');
+        }
+
+        // ========== COMPLIANCE ==========
+        async function generateComplianceReport() {
+            const framework = document.getElementById('complianceFramework').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/compliance/report`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ framework, include_remediation: true })
+                });
+                const report = await res.json();
+                displayComplianceReport(report);
+            } catch(e) {
+                console.error('Compliance error:', e);
+            }
+        }
+
+        function displayComplianceReport(report) {
+            const container = document.getElementById('complianceResults');
+            const summary = report.summary || {};
+            const categories = report.categories || [];
+
+            let categoriesHtml = categories.map(cat => `
+                <div class="compliance-category ${cat.status}">
+                    <div class="compliance-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <div>
+                            <strong>${cat.id}: ${cat.name}</strong>
+                            <span style="color: var(--text-secondary); font-size: 0.8rem; margin-left: 0.5rem;">${cat.finding_count} findings</span>
+                        </div>
+                        <span class="compliance-status ${cat.status}">${cat.status.replace('_', ' ')}</span>
+                    </div>
+                    <div class="workflow-step-body">
+                        ${cat.findings && cat.findings.length > 0 ?
+                            cat.findings.map(f => createDetailedFindingCard(f)).join('') :
+                            '<p style="color: var(--text-secondary); padding: 0.5rem;">No issues in this category.</p>'
+                        }
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: var(--accent);">${report.framework.toUpperCase()} Compliance Report</h3>
+                        <div style="font-size: 2rem; font-weight: bold; color: ${summary.compliance_score >= 80 ? 'var(--accent)' : summary.compliance_score >= 50 ? 'var(--high)' : 'var(--critical)'};">
+                            ${summary.compliance_score || 0}%
+                        </div>
+                    </div>
+                    <div class="results-summary">
+                        <div class="results-summary-item"><span class="count">${summary.total_findings || 0}</span><span class="label">Total Findings</span></div>
+                        <div class="results-summary-item critical"><span class="count">${summary.critical || 0}</span><span class="label">Critical</span></div>
+                        <div class="results-summary-item high"><span class="count">${summary.high || 0}</span><span class="label">High</span></div>
+                        <div class="results-summary-item"><span class="count" style="color: ${summary.risk_rating === 'critical' ? 'var(--critical)' : summary.risk_rating === 'high' ? 'var(--high)' : 'var(--accent)'};">${(summary.risk_rating || 'low').toUpperCase()}</span><span class="label">Risk</span></div>
+                    </div>
+                </div>
+                <h3 style="margin: 1rem 0;">Categories</h3>
+                ${categoriesHtml}
+            `;
+        }
+
+        // ========== THREAT INTEL ==========
         async function lookupTI() {
             const indicator = document.getElementById('tiIndicator').value;
             const type = document.getElementById('tiType').value;
             const service = document.getElementById('tiService').value;
             const mode = document.getElementById('tiMode').value;
-            if (!indicator) { alert('Please enter an indicator'); return; }
-            document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">🔍</div><p>Looking up <strong>${indicator}</strong>...</p></div>`;
+
+            if (!indicator) {
+                alert('Please enter an indicator');
+                return;
+            }
+
+            document.getElementById('tiResults').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon" style="animation: pulse 1s infinite;">🔍</div>
+                    <p>Looking up ${indicator}...</p>
+                </div>
+            `;
+
             try {
                 if (service === 'all') {
                     const res = await fetch(`${API_BASE}/threatintel/lookup-all?indicator=${encodeURIComponent(indicator)}&indicator_type=${type}&mode=${mode}`, { method: 'POST' });
@@ -1379,65 +1210,49 @@
                 }
             } catch(e) {
                 console.error('TI Lookup Error:', e);
-                document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed: ${e.message}</p></div>`;
+                document.getElementById('tiResults').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Lookup failed: ${e.message}</p>
+                    </div>
+                `;
             }
         }
 
         function displayTIResults(data, indicator, service) {
             const threatLevel = (data.threat_level || 'unknown').toLowerCase();
-            let verdictClass, verdictIcon, verdictLabel, verdictDesc;
+            let verdictClass, verdictIcon, verdictLabel;
+
             if (threatLevel === 'clean' || threatLevel === 'safe') {
-                verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected.';
+                verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN';
             } else if (threatLevel === 'suspicious' || threatLevel === 'medium') {
-                verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected.';
+                verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS';
             } else if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') {
-                verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Threats confirmed!';
+                verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS';
             } else {
-                verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.';
+                verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN';
             }
-            let detailsHtml = '';
-            if (service === 'virustotal') {
-                detailsHtml = `
-                    <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: ${(data.malicious||0) > 0 ? 'var(--critical)' : 'var(--success)'}">${data.malicious||0}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || 'N/A'}</div></div>
-                `;
-            } else if (service === 'abuseipdb') {
-                const s = data.abuse_confidence_score||0, r = data.total_reports||0;
-                detailsHtml = `
-                    <div class="ti-detail"><div class="ti-detail-label">Abuse Score</div><div class="ti-detail-value" style="color: ${s>=50||r>=100 ? 'var(--critical)' : s>=25||r>=10 ? 'var(--high)' : 'var(--success)'}">${s}%</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value">${r}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country_code||'N/A'}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp||'N/A'}</div></div>
-                `;
-            } else if (service === 'otx') {
-                const p = data.pulse_count||0;
-                detailsHtml = `
-                    <div class="ti-detail"><div class="ti-detail-label">Pulse Count</div><div class="ti-detail-value" style="color: ${p>=10 ? 'var(--critical)' : p>=3 ? 'var(--high)' : 'var(--success)'}">${p}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country||data.country_code||'N/A'}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">ASN</div><div class="ti-detail-value">${data.asn||'N/A'}</div></div>
-                `;
-            } else if (service === 'pulsedive') {
-                const risk = data.risk||'none', threats = data.threats||[], rf = data.risk_factors||[];
-                detailsHtml = `
-                    <div class="ti-detail"><div class="ti-detail-label">Risk</div><div class="ti-detail-value" style="color: ${risk==='critical'||risk==='high' ? 'var(--critical)' : risk==='medium' ? 'var(--high)' : 'var(--success)'}; text-transform: uppercase;">${risk}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Threats</div><div class="ti-detail-value" style="color: ${threats.length>0 ? 'var(--critical)' : 'var(--success)'}">${threats.length>0 ? threats.join(', ') : 'None'}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Risk Factors</div><div class="ti-detail-value">${rf.length>0 ? rf.slice(0,3).join(', ') : 'None'}</div></div>
-                `;
-            }
-            detailsHtml += `<div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.85rem; word-break: break-all;">${indicator}</div></div>`;
+
             document.getElementById('tiResults').innerHTML = `
                 <div class="panel">
                     <div class="ti-verdict ${verdictClass}">
                         <div class="ti-verdict-icon">${verdictIcon}</div>
                         <div>
                             <div class="ti-verdict-label">${verdictLabel}</div>
-                            <div style="font-size: 0.9rem; color: var(--text-secondary);">${verdictDesc}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">Service: ${service}</div>
                         </div>
                     </div>
-                    <div class="ti-details">${detailsHtml}</div>
-                    <details style="margin-top: 1.5rem;">
-                        <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.85rem;">📄 Raw Response</summary>
-                        <pre style="margin-top: 0.75rem; font-size: 0.8rem; overflow-x: auto; background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">${JSON.stringify(data, null, 2)}</pre>
+                    <div class="ti-details">
+                        <div class="ti-detail">
+                            <div class="ti-detail-label">Indicator</div>
+                            <div class="ti-detail-value" style="font-size: 0.85rem; word-break: break-all;">${indicator}</div>
+                        </div>
+                        ${data.country ? `<div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country}</div></div>` : ''}
+                        ${data.isp ? `<div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp}</div></div>` : ''}
+                    </div>
+                    <details style="margin-top: 1rem;">
+                        <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.8rem;">Raw Response</summary>
+                        <pre style="margin-top: 0.5rem; font-size: 0.75rem; overflow-x: auto; background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px;">${JSON.stringify(data, null, 2)}</pre>
                     </details>
                 </div>
             `;
@@ -1445,47 +1260,34 @@
 
         function displayAggregatedTIResults(data) {
             const overallVerdict = (data.overall_verdict || 'unknown').toLowerCase();
-            let verdictClass, verdictIcon, verdictLabel, verdictDesc;
-            if (overallVerdict === 'clean' || overallVerdict === 'safe') {
-                verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected across all services.';
-            } else if (overallVerdict === 'suspicious' || overallVerdict === 'medium') {
-                verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected by one or more services.';
-            } else if (overallVerdict === 'malicious' || overallVerdict === 'high' || overallVerdict === 'critical') {
-                verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Confirmed threats detected!';
+            let verdictClass, verdictIcon, verdictLabel;
+
+            if (overallVerdict === 'clean') {
+                verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN';
+            } else if (overallVerdict === 'suspicious') {
+                verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS';
+            } else if (overallVerdict === 'malicious') {
+                verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS';
             } else {
-                verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.';
+                verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN';
             }
 
-            let servicesHtml = '<div style="margin-top: 1.5rem;"><div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--accent);">Service Breakdown:</div>';
+            let servicesHtml = '<div style="margin-top: 1rem;">';
             for (const result of data.results || []) {
-                const serviceName = result.service || 'Unknown';
-                const threatLevel = (result.threat_level || result.note || 'N/A').toLowerCase();
-                let serviceIcon = '○', serviceColor = 'var(--text-secondary)';
-                if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') {
-                    serviceIcon = '✗'; serviceColor = 'var(--critical)';
-                } else if (threatLevel === 'suspicious' || threatLevel === 'medium') {
-                    serviceIcon = '⚠'; serviceColor = 'var(--high)';
-                } else if (threatLevel === 'clean' || threatLevel === 'safe') {
-                    serviceIcon = '✓'; serviceColor = 'var(--success)';
-                }
+                const level = (result.threat_level || 'unknown').toLowerCase();
+                let icon = '○', color = 'var(--text-secondary)';
+                if (level === 'malicious') { icon = '✗'; color = 'var(--critical)'; }
+                else if (level === 'suspicious') { icon = '⚠'; color = 'var(--high)'; }
+                else if (level === 'clean') { icon = '✓'; color = 'var(--accent)'; }
+
                 servicesHtml += `
-                    <div style="display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border);">
-                        <span style="text-transform: capitalize;">${serviceName}</span>
-                        <span style="color: ${serviceColor}; font-weight: bold;">${serviceIcon} ${threatLevel.toUpperCase()}</span>
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                        <span style="text-transform: capitalize;">${result.service || 'Unknown'}</span>
+                        <span style="color: ${color}; font-weight: bold;">${icon} ${level.toUpperCase()}</span>
                     </div>
                 `;
             }
             servicesHtml += '</div>';
-
-            const statsHtml = `
-                <div class="ti-details">
-                    <div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.85rem; word-break: break-all;">${data.indicator}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Services Queried</div><div class="ti-detail-value">${data.total_services}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: var(--critical)">${data.threat_counts?.malicious || 0}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Suspicious</div><div class="ti-detail-value" style="color: var(--high)">${data.threat_counts?.suspicious || 0}</div></div>
-                    <div class="ti-detail"><div class="ti-detail-label">Clean</div><div class="ti-detail-value" style="color: var(--success)">${data.threat_counts?.clean || 0}</div></div>
-                </div>
-            `;
 
             document.getElementById('tiResults').innerHTML = `
                 <div class="panel">
@@ -1493,93 +1295,21 @@
                         <div class="ti-verdict-icon">${verdictIcon}</div>
                         <div>
                             <div class="ti-verdict-label">${verdictLabel}</div>
-                            <div style="font-size: 0.9rem; color: var(--text-secondary);">${verdictDesc}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">${data.verdict_reason}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">${data.verdict_reason}</div>
                         </div>
                     </div>
-                    ${statsHtml}
+                    <div class="ti-details">
+                        <div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.85rem;">${data.indicator}</div></div>
+                        <div class="ti-detail"><div class="ti-detail-label">Services</div><div class="ti-detail-value">${data.total_services}</div></div>
+                        <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: var(--critical)">${data.threat_counts?.malicious || 0}</div></div>
+                        <div class="ti-detail"><div class="ti-detail-label">Clean</div><div class="ti-detail-value" style="color: var(--accent)">${data.threat_counts?.clean || 0}</div></div>
+                    </div>
                     ${servicesHtml}
-                    <details style="margin-top: 1.5rem;">
-                        <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.85rem;">📄 Raw Response</summary>
-                        <pre style="margin-top: 0.75rem; font-size: 0.8rem; overflow-x: auto; background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">${JSON.stringify(data, null, 2)}</pre>
-                    </details>
                 </div>
             `;
         }
 
-        function addFeedItem(type, message) {
-            const feed = document.getElementById('liveFeed');
-            const time = new Date().toLocaleTimeString();
-            const item = document.createElement('div');
-            item.className = 'feed-item';
-            item.innerHTML = `<span class="time">[${time}]</span> <span class="type">[${type}]</span> <span>${message}</span>`;
-            feed.insertBefore(item, feed.firstChild);
-            if (feed.children.length > 100) feed.removeChild(feed.lastChild);
-        }
-
-        function connectWS() {
-            ws = new WebSocket(`${WS_PROTOCOL}//${location.host}/ws/stream`);
-            ws.onopen = () => {
-                document.getElementById('connectionStatus').className = 'live-indicator';
-                document.getElementById('ws-status').textContent = 'Live Connected';
-            };
-            ws.onclose = () => {
-                document.getElementById('connectionStatus').className = 'live-indicator disconnected';
-                document.getElementById('ws-status').textContent = 'Disconnected';
-                setTimeout(connectWS, 3000);
-            };
-            ws.onerror = () => {
-                document.getElementById('connectionStatus').className = 'live-indicator disconnected';
-                document.getElementById('ws-status').textContent = 'Error';
-            };
-            ws.onmessage = (e) => {
-                try {
-                    const data = JSON.parse(e.data);
-                    const eventType = data.type;
-                    const eventData = data.data || {};
-                    if (eventType === 'plugin.completed') {
-                        addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s)`);
-                        handlePluginCompleted(eventData);
-                    } else if (eventType === 'plugin.failed') {
-                        addFeedItem(eventType, `${eventData.plugin} failed`);
-                        handlePluginFailed(eventData);
-                    } else if (eventType === 'workflow.completed') {
-                        addFeedItem(eventType, 'Workflow completed');
-                        fetchMetrics();
-                    } else if (eventType === 'dns.propagation.completed') {
-                        addFeedItem(eventType, `DNS check for ${eventData.domain} completed`);
-                        handleDNSPropagationCompleted(eventData);
-                    } else if (eventType === 'dns.propagation.failed') {
-                        addFeedItem(eventType, `DNS check for ${eventData.domain} failed: ${eventData.error}`);
-                    } else {
-                        addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
-                    }
-                } catch {
-                    addFeedItem('event', e.data);
-                }
-            };
-        }
-
-        // =====================
-        // DNS PROPAGATION MAP
-        // =====================
-
-        let dnsResults = null;
-
-        function latLonToXY(lat, lon, width, height) {
-            const lonMin = -180, lonMax = 180;
-            const latMin = -60, latMax = 85;
-            const x = ((lon - lonMin) / (lonMax - lonMin)) * width;
-            const latRad = lat * Math.PI / 180;
-            const mercN = Math.log(Math.tan((Math.PI / 4) + (latRad / 2)));
-            const latMinRad = latMin * Math.PI / 180;
-            const latMaxRad = latMax * Math.PI / 180;
-            const mercNMin = Math.log(Math.tan((Math.PI / 4) + (latMinRad / 2)));
-            const mercNMax = Math.log(Math.tan((Math.PI / 4) + (latMaxRad / 2)));
-            const y = height - ((mercN - mercNMin) / (mercNMax - mercNMin)) * height;
-            return { x: Math.max(15, Math.min(width - 15, x)), y: Math.max(15, Math.min(height - 15, y)) };
-        }
-
+        // ========== DNS PROPAGATION ==========
         async function checkDNSPropagation() {
             const domain = document.getElementById('dnsDomain').value.trim();
             const recordType = document.getElementById('dnsRecordType').value;
@@ -1589,27 +1319,16 @@
                 return;
             }
 
-            // Show loading state
             document.getElementById('dnsResults').innerHTML = `
                 <div class="dns-map-container">
-                    <div class="dns-map-header">
-                        <div class="dns-map-title">DNS Propagation Map by <span>APIGuardian</span></div>
-                        <div class="dns-map-menu"><span></span></div>
+                    <div class="dns-summary-bar">
+                        <span style="color: var(--accent);">Checking DNS propagation for <strong>${domain}</strong>...</span>
                     </div>
                     <div class="dns-world-map" style="display: flex; align-items: center; justify-content: center;">
-                        <div class="empty-state" style="padding: 3rem;">
-                            <div class="icon" style="animation: pulse 1s infinite; font-size: 3rem;">🌍</div>
-                            <p style="color: #555;">Querying 80+ DNS servers worldwide for <strong>${domain}</strong>...</p>
-                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">This may take a few seconds</p>
+                        <div class="empty-state" style="padding: 2rem;">
+                            <div class="icon" style="animation: pulse 1s infinite;">🔍</div>
+                            <p>Querying DNS servers worldwide...</p>
                         </div>
-                    </div>
-                    <div class="dns-map-legend">
-                        <div class="dns-legend-item">
-                            <div class="dns-legend-marker location"><svg viewBox="0 0 24 32" width="20" height="26"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#f39c12"/></svg></div>
-                            <span>Server Location</span>
-                        </div>
-                        <div class="dns-legend-item"><div class="dns-legend-marker resolved">✓</div><span>Resolved</span></div>
-                        <div class="dns-legend-item"><div class="dns-legend-marker not-resolved">✗</div><span>Not Resolved</span></div>
                     </div>
                 </div>
             `;
@@ -1621,15 +1340,11 @@
                     body: JSON.stringify({ domain, record_type: recordType })
                 });
 
-                if (!res.ok) {
-                    const error = await res.json();
-                    throw new Error(error.detail || 'DNS check failed');
-                }
+                if (!res.ok) throw new Error((await res.json()).detail || 'DNS check failed');
 
-                dnsResults = await res.json();
-                renderDNSResults(dnsResults);
-                addFeedItem('dns.propagation', `Checked ${domain} (${recordType}) - ${dnsResults.summary.propagation_percentage}% propagated`);
-            } catch (e) {
+                const data = await res.json();
+                renderDNSResults(data);
+            } catch(e) {
                 console.error('DNS check error:', e);
                 document.getElementById('dnsResults').innerHTML = `
                     <div class="empty-state">
@@ -1643,297 +1358,124 @@
         function renderDNSResults(data) {
             const container = document.getElementById('dnsResults');
             const summary = data.summary;
-
             const successCount = data.results.filter(r => r.success && r.records.length > 0).length;
             const errorCount = data.results.filter(r => !r.success || r.error).length;
 
-            let statusColor = 'var(--success)';
-            let statusText = 'Fully Propagated';
-            if (summary.propagation_percentage < 50) {
-                statusColor = 'var(--critical)';
-                statusText = 'Low Propagation';
-            } else if (summary.propagation_percentage < 90) {
-                statusColor = 'var(--high)';
-                statusText = 'Propagating...';
-            }
+            let statusColor = summary.propagation_percentage >= 90 ? 'var(--accent)' :
+                             summary.propagation_percentage >= 50 ? 'var(--high)' : 'var(--critical)';
 
-            let html = `
-                <div class="dns-summary-bar">
-                    <div class="dns-summary-item">
-                        <strong style="color: var(--accent);">${data.domain}</strong>
-                        <span class="dns-record-badge">${data.record_type}</span>
-                    </div>
-                    <div class="dns-summary-item">
-                        <div class="dns-summary-dot success"></div>
-                        <span>${successCount} Resolved</span>
-                    </div>
-                    <div class="dns-summary-item">
-                        <div class="dns-summary-dot error"></div>
-                        <span>${errorCount} Failed</span>
-                    </div>
-                    <div class="dns-summary-item">
-                        <span style="color: ${statusColor}; font-weight: bold;">${summary.propagation_percentage}% ${statusText}</span>
-                    </div>
-                    <div class="dns-propagation-bar">
-                        <div class="dns-propagation-fill" style="width: ${summary.propagation_percentage}%"></div>
-                    </div>
-                    <div class="dns-summary-item">
-                        <span style="color: var(--text-secondary);">Avg: ${summary.average_response_time_ms}ms</span>
-                    </div>
-                </div>
-
+            container.innerHTML = `
                 <div class="dns-map-container">
-                    <div class="dns-map-header">
-                        <div class="dns-map-title">DNS Propagation Map by <span>APIGuardian</span></div>
-                        <div class="dns-map-menu"><span></span></div>
-                    </div>
-                    <div class="dns-world-map" id="dnsWorldMap">
-                        ${renderWorldMapWithResults(data.results)}
-                    </div>
-                    <div class="dns-map-legend">
-                        <div class="dns-legend-item">
-                            <div class="dns-legend-marker location"><svg viewBox="0 0 24 32" width="20" height="26"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#f39c12"/></svg></div>
-                            <span>Server Location</span>
+                    <div class="dns-summary-bar">
+                        <div class="dns-summary-item">
+                            <strong style="color: var(--accent);">${data.domain}</strong>
+                            <span class="dns-record-badge">${data.record_type}</span>
                         </div>
-                        <div class="dns-legend-item"><div class="dns-legend-marker resolved">✓</div><span>Resolved</span></div>
-                        <div class="dns-legend-item"><div class="dns-legend-marker not-resolved">✗</div><span>Not Resolved</span></div>
+                        <div class="dns-summary-item">
+                            <div class="dns-summary-dot success"></div>
+                            <span>${successCount} Resolved</span>
+                        </div>
+                        <div class="dns-summary-item">
+                            <div class="dns-summary-dot error"></div>
+                            <span>${errorCount} Failed</span>
+                        </div>
+                        <div class="dns-summary-item">
+                            <span style="color: ${statusColor}; font-weight: bold;">${summary.propagation_percentage}% Propagated</span>
+                        </div>
+                        <div class="dns-propagation-bar">
+                            <div class="dns-propagation-fill" style="width: ${summary.propagation_percentage}%"></div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; background: var(--bg-tertiary);">
+                        <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Resolved Values</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${summary.unique_records.map(r => `<span class="dns-record-badge" style="font-size: 0.85rem;">${r}</span>`).join('')}
+                        </div>
                     </div>
                 </div>
-
-                <div style="padding: 1.5rem; background: var(--bg-card); border-radius: 12px; margin-top: 1rem; border: 1px solid var(--border);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 style="color: var(--accent); font-size: 0.95rem;">RESOLVED VALUES</h3>
-                        <span style="color: var(--text-secondary); font-size: 0.85rem;">${summary.unique_records.length} unique record(s)</span>
-                    </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        ${summary.unique_records.map(r => `<span class="dns-record-badge" style="font-size: 0.9rem; padding: 0.4rem 1rem; background: var(--bg-tertiary);">${r}</span>`).join('')}
-                    </div>
-                </div>
-
-                <h2>Server Results</h2>
+                <h3 style="margin: 1rem 0;">Server Results</h3>
                 <div class="dns-results-grid">
-                    ${data.results.map(r => renderDNSResultCard(r)).join('')}
+                    ${data.results.map(r => {
+                        let statusClass = r.success && r.records.length > 0 ? 'success' : r.error?.includes('Timeout') ? 'timeout' : 'error';
+                        let statusIcon = statusClass === 'success' ? '✓' : statusClass === 'timeout' ? '⏱' : '✗';
+                        return `
+                            <div class="dns-result-card ${statusClass}">
+                                <div class="dns-result-header">
+                                    <div>
+                                        <div class="dns-result-server">${r.server_name}</div>
+                                        <div class="dns-result-location">${r.city}, ${r.location}</div>
+                                    </div>
+                                    <span style="color: var(--${statusClass === 'success' ? 'accent' : statusClass === 'error' ? 'critical' : 'high'}); font-size: 1.2rem;">${statusIcon}</span>
+                                </div>
+                                <div class="dns-result-records">${r.records.length > 0 ? r.records.join('<br>') : (r.error || 'No records')}</div>
+                                <div class="dns-result-meta">
+                                    <span>IP: ${r.server_ip}</span>
+                                    <span>${r.response_time_ms}ms</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
+        }
 
-            container.innerHTML = html;
+        // ========== LIVE FEED ==========
+        function addFeedItem(type, message) {
+            const feed = document.getElementById('liveFeed');
+            const time = new Date().toLocaleTimeString();
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `<span class="time">[${time}]</span> <span class="type">[${type}]</span> <span class="message">${message}</span>`;
+            feed.insertBefore(item, feed.firstChild);
+            if (feed.children.length > 100) feed.removeChild(feed.lastChild);
+        }
 
-            // Add event listeners for markers
-            data.results.forEach((result, i) => {
-                const marker = document.getElementById(`dns-marker-${i}`);
-                if (marker) {
-                    marker.addEventListener('mouseenter', (e) => showDNSTooltip(e, result));
-                    marker.addEventListener('mouseleave', hideDNSTooltip);
+        // ========== WEBSOCKET ==========
+        function connectWS() {
+            ws = new WebSocket(`${WS_PROTOCOL}//${location.host}/ws/stream`);
+
+            ws.onopen = () => {
+                document.getElementById('ws-dot').className = 'status-dot connected';
+                document.getElementById('ws-status').textContent = 'Connected';
+                addFeedItem('system', 'WebSocket connected');
+            };
+
+            ws.onclose = () => {
+                document.getElementById('ws-dot').className = 'status-dot disconnected';
+                document.getElementById('ws-status').textContent = 'Disconnected';
+                setTimeout(connectWS, 3000);
+            };
+
+            ws.onerror = () => {
+                document.getElementById('ws-dot').className = 'status-dot disconnected';
+                document.getElementById('ws-status').textContent = 'Error';
+            };
+
+            ws.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    const eventType = data.type;
+                    const eventData = data.data || {};
+
+                    if (eventType === 'plugin.completed') {
+                        addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s)`);
+                        handlePluginCompleted(eventData);
+                    } else if (eventType === 'plugin.failed') {
+                        addFeedItem(eventType, `${eventData.plugin} failed: ${eventData.error}`);
+                        handlePluginFailed(eventData);
+                    } else if (eventType === 'workflow.completed') {
+                        addFeedItem(eventType, `Workflow completed with ${eventData.total_findings} findings`);
+                        fetchMetrics();
+                    } else {
+                        addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
+                    }
+                } catch {
+                    addFeedItem('event', e.data);
                 }
-            });
+            };
         }
 
-        function renderWorldMapWithResults(results) {
-            const width = 1000;
-            const height = 500;
-
-            let svg = `
-                <svg class="dns-map-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8f4fc"/>
-                            <stop offset="100%" style="stop-color:#d4e9f7"/>
-                        </linearGradient>
-                        <filter id="markerShadow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
-                        </filter>
-                    </defs>
-
-                    <rect width="${width}" height="${height}" fill="url(#oceanGradient)"/>
-
-                    <!-- World Map Continents -->
-                    <g fill="#4a90d9">
-                        <!-- North America -->
-                        <path d="M 50 120 Q 60 80 120 60 Q 180 50 230 70 Q 260 60 280 80 Q 300 100 290 130 Q 270 150 260 180 Q 240 200 220 210 Q 200 220 180 220 Q 160 230 150 250 Q 140 270 130 260 Q 100 240 80 200 Q 60 170 50 120 Z"/>
-                        <!-- Greenland -->
-                        <path d="M 320 50 Q 380 40 400 60 Q 410 90 390 110 Q 360 120 330 100 Q 310 80 320 50 Z"/>
-                        <!-- South America -->
-                        <path d="M 200 280 Q 230 270 250 290 Q 270 320 280 360 Q 275 400 260 430 Q 240 460 210 450 Q 180 430 170 390 Q 165 350 175 310 Q 185 280 200 280 Z"/>
-                        <!-- Europe -->
-                        <path d="M 440 80 Q 470 70 510 80 Q 540 90 560 110 Q 570 130 550 150 Q 520 160 490 155 Q 460 150 440 130 Q 430 110 440 80 Z"/>
-                        <!-- UK -->
-                        <path d="M 420 90 Q 435 85 440 100 Q 445 115 430 120 Q 415 115 420 90 Z"/>
-                        <!-- Africa -->
-                        <path d="M 460 180 Q 500 170 540 190 Q 570 220 580 270 Q 575 330 550 380 Q 520 420 480 410 Q 450 390 440 340 Q 435 290 450 240 Q 455 200 460 180 Z"/>
-                        <!-- Middle East -->
-                        <path d="M 560 150 Q 600 140 630 160 Q 650 180 640 210 Q 610 230 580 220 Q 560 200 560 150 Z"/>
-                        <!-- Russia/Asia -->
-                        <path d="M 560 60 Q 650 40 750 50 Q 850 60 900 90 Q 930 120 920 160 Q 900 180 850 170 Q 800 175 750 160 Q 700 150 660 140 Q 620 130 580 120 Q 560 100 560 60 Z"/>
-                        <!-- India -->
-                        <path d="M 660 200 Q 700 190 720 220 Q 730 260 710 290 Q 680 300 660 280 Q 650 250 660 200 Z"/>
-                        <!-- Southeast Asia -->
-                        <path d="M 750 200 Q 780 190 810 210 Q 830 240 820 270 Q 790 280 760 260 Q 745 230 750 200 Z"/>
-                        <!-- China/East Asia -->
-                        <path d="M 750 120 Q 800 100 850 120 Q 880 150 870 180 Q 840 200 800 190 Q 760 175 750 120 Z"/>
-                        <!-- Japan -->
-                        <path d="M 890 130 Q 910 120 920 140 Q 925 165 910 180 Q 895 175 890 130 Z"/>
-                        <!-- Indonesia -->
-                        <path d="M 780 300 Q 820 295 850 305 Q 870 320 860 340 Q 830 350 800 340 Q 775 325 780 300 Z"/>
-                        <!-- Australia -->
-                        <path d="M 820 360 Q 880 350 920 380 Q 940 420 920 450 Q 880 470 840 460 Q 800 440 810 400 Q 815 375 820 360 Z"/>
-                        <!-- New Zealand -->
-                        <path d="M 960 430 Q 975 420 980 440 Q 985 465 970 475 Q 955 470 960 430 Z"/>
-                    </g>
-
-                    <!-- DNS Server Markers -->
-                    <g>
-            `;
-
-            results.forEach((result, i) => {
-                const pos = latLonToXY(result.lat, result.lon, width, height);
-                const isSuccess = result.success && result.records.length > 0;
-                const isTimeout = result.error && result.error.includes('Timeout');
-
-                let markerColor = '#f39c12'; // Default yellow/orange
-                let checkMark = '';
-
-                if (isSuccess) {
-                    checkMark = `<text x="${pos.x}" y="${pos.y - 18}" text-anchor="middle" fill="#27ae60" font-size="14" font-weight="bold">✓</text>`;
-                } else if (!isTimeout && (result.error || !result.success)) {
-                    checkMark = `<text x="${pos.x}" y="${pos.y - 18}" text-anchor="middle" fill="#e74c3c" font-size="14" font-weight="bold">✗</text>`;
-                }
-
-                svg += `
-                    <g id="dns-marker-${i}" class="dns-marker" filter="url(#markerShadow)">
-                        <path d="M ${pos.x} ${pos.y} c0-8 -6-14 -6-14 s-6 6 -6 14 c0 4 3 7 6 10 c3-3 6-6 6-10 z" transform="translate(6, -24)" fill="${markerColor}"/>
-                        <circle cx="${pos.x}" cy="${pos.y - 16}" r="4" fill="#fff"/>
-                        ${checkMark}
-                    </g>
-                `;
-            });
-
-            svg += `
-                    </g>
-                </svg>
-            `;
-
-            return svg;
-        }
-
-        function renderDNSResultCard(result) {
-            let statusClass = 'success';
-            let statusIcon = '✓';
-
-            if (result.error && result.error.includes('Timeout')) {
-                statusClass = 'timeout';
-                statusIcon = '⏱';
-            } else if (!result.success || result.error) {
-                statusClass = 'error';
-                statusIcon = '✗';
-            } else if (result.records.length === 0) {
-                statusClass = 'timeout';
-                statusIcon = '−';
-            }
-
-            return `
-                <div class="dns-result-card ${statusClass}">
-                    <div class="dns-result-header">
-                        <div>
-                            <div class="dns-result-server">${result.server_name}</div>
-                            <div class="dns-result-location">📍 ${result.city}, ${result.location}</div>
-                        </div>
-                        <span style="color: var(--${statusClass === 'success' ? 'success' : statusClass === 'error' ? 'critical' : 'high'}); font-size: 1.3rem;">${statusIcon}</span>
-                    </div>
-                    <div class="dns-result-records">
-                        ${result.records.length > 0 ? result.records.join('<br>') : (result.error || 'No records')}
-                    </div>
-                    <div class="dns-result-meta">
-                        <span>🌐 ${result.server_ip}</span>
-                        <span>⚡ ${result.response_time_ms}ms</span>
-                        ${result.ttl ? `<span>⏰ TTL: ${result.ttl}s</span>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function showDNSTooltip(event, result) {
-            hideDNSTooltip();
-
-            const tooltip = document.createElement('div');
-            tooltip.className = 'dns-tooltip';
-            tooltip.id = 'dnsTooltip';
-
-            let statusText = 'Resolved';
-            let statusColor = '#27ae60';
-            if (result.error && result.error.includes('Timeout')) {
-                statusText = 'Timeout';
-                statusColor = '#f39c12';
-            } else if (!result.success || result.error) {
-                statusText = 'Failed';
-                statusColor = '#e74c3c';
-            } else if (result.records.length === 0) {
-                statusText = 'No Records';
-                statusColor = '#f39c12';
-            }
-
-            tooltip.innerHTML = `
-                <div class="dns-tooltip-header">${result.server_name}</div>
-                <div class="dns-tooltip-row">
-                    <span class="dns-tooltip-label">Location:</span>
-                    <span class="dns-tooltip-value">${result.city}, ${result.country_code}</span>
-                </div>
-                <div class="dns-tooltip-row">
-                    <span class="dns-tooltip-label">IP:</span>
-                    <span class="dns-tooltip-value">${result.server_ip}</span>
-                </div>
-                <div class="dns-tooltip-row">
-                    <span class="dns-tooltip-label">Status:</span>
-                    <span class="dns-tooltip-value" style="color: ${statusColor}">${statusText}</span>
-                </div>
-                <div class="dns-tooltip-row">
-                    <span class="dns-tooltip-label">Response:</span>
-                    <span class="dns-tooltip-value">${result.response_time_ms}ms</span>
-                </div>
-                ${result.records.length > 0 ? `
-                    <div class="dns-tooltip-row" style="flex-direction: column; align-items: flex-start;">
-                        <span class="dns-tooltip-label">Records:</span>
-                        <span class="dns-tooltip-value" style="margin-top: 0.25rem; word-break: break-all; font-size: 0.8rem;">${result.records.slice(0, 3).join(', ')}${result.records.length > 3 ? '...' : ''}</span>
-                    </div>
-                ` : ''}
-                ${result.ttl ? `
-                    <div class="dns-tooltip-row">
-                        <span class="dns-tooltip-label">TTL:</span>
-                        <span class="dns-tooltip-value">${result.ttl}s</span>
-                    </div>
-                ` : ''}
-            `;
-
-            const mapContainer = document.getElementById('dnsWorldMap');
-            if (mapContainer) {
-                mapContainer.appendChild(tooltip);
-
-                const rect = event.target.getBoundingClientRect();
-                const mapRect = mapContainer.getBoundingClientRect();
-                let left = rect.left - mapRect.left + 20;
-                let top = rect.top - mapRect.top - 10;
-
-                if (left + 240 > mapRect.width) left = rect.left - mapRect.left - 240;
-                if (top + 200 > mapRect.height) top = rect.top - mapRect.top - 200;
-                if (top < 10) top = 10;
-
-                tooltip.style.left = left + 'px';
-                tooltip.style.top = top + 'px';
-            }
-        }
-
-        function hideDNSTooltip() {
-            const tooltip = document.getElementById('dnsTooltip');
-            if (tooltip) tooltip.remove();
-        }
-
-        function handleDNSPropagationCompleted(data) {
-            if (data.domain === document.getElementById('dnsDomain').value.trim()) {
-                dnsResults = data;
-                renderDNSResults(data);
-            }
-        }
-
-        // Initialize
+        // ========== INITIALIZATION ==========
         fetchMetrics();
         fetchPlugins();
         connectWS();
