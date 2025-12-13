@@ -5,7 +5,6 @@ from typing import Dict, List, Any
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from apiguardian.core.plugin_manager import AnalyzerPlugin
-from apiguardian.utils.http_client import safe_http_client, HTTPResponse
 
 logger = logging.getLogger(__name__)
 

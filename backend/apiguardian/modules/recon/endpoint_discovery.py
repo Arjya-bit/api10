@@ -99,8 +99,8 @@ class EndpointDiscovery(ReconPlugin):
     async def _probe_endpoint(self, url: str, timeout: float) -> Dict:
         """Probe a single endpoint"""
         try:
-            response = await http_client.get(url)
-            
+            response = await http_client.get(url, timeout=timeout)
+
             # Consider success if not 404/502/503/504
             if response.status_code not in [404, 502, 503, 504, 0]:
                 return {
@@ -111,7 +111,7 @@ class EndpointDiscovery(ReconPlugin):
                 }
         except Exception as e:
             logger.debug(f"Probe failed for {url}: {e}")
-        
+
         return None
     
     def _is_sensitive(self, path: str, response: Dict) -> bool:
