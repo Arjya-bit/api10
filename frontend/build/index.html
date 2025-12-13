@@ -3,191 +3,860 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APIGuardian - API Security Platform</title>
+    <title>APIGuardian - Enterprise API Security Platform</title>
     <style>
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #111;
-            --bg-tertiary: #1a1a1a;
-            --text-primary: #eee;
-            --text-secondary: #888;
-            --accent: #00ff94;
-            --critical: #ff2a6d;
-            --high: #ff9f1c;
-            --medium: #f1c40f;
-            --low: #3498db;
-            --info: #5865f2;
-            --border: #333;
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --accent-secondary: #7c3aed;
+            --critical: #ff3860;
+            --high: #ff9f43;
+            --medium: #feca57;
+            --low: #54a0ff;
+            --info: #5f27cd;
+            --success: #00d26a;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(255, 255, 255, 0.05);
+            --map-ocean: #4a90d9;
+            --map-land: #3498db;
+            --marker-color: #f39c12;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             background: var(--bg-primary);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
         }
+
         .container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
-        h1 { color: var(--accent); font-size: 1.75rem; font-family: monospace; }
-        h2 { color: var(--text-primary); font-size: 1rem; margin: 1.5rem 0 0.75rem; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; }
-        .meta { color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1.5rem; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 1rem; }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .target-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-primary);
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .target-input input {
+            width: 320px;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .target-input input:focus { outline: none; }
+        .target-input input::placeholder { color: var(--text-secondary); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        .stat-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; }
-        .stat-card .label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-secondary); }
-        .stat-card .value { font-size: 1.75rem; font-weight: bold; font-family: monospace; }
-        .stat-card.critical .value { color: var(--critical); }
-        .stat-card.high .value { color: var(--high); }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--card-accent, var(--accent)), transparent);
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .stat-card.critical { --card-accent: var(--critical); }
+        .stat-card.critical .value { color: var(--critical); text-shadow: 0 0 20px rgba(255, 56, 96, 0.5); }
+        .stat-card.high { --card-accent: var(--high); }
+        .stat-card.high .value { color: var(--high); text-shadow: 0 0 20px rgba(255, 159, 67, 0.5); }
+        .stat-card.medium { --card-accent: var(--medium); }
         .stat-card.medium .value { color: var(--medium); }
+        .stat-card.low { --card-accent: var(--low); }
         .stat-card.low .value { color: var(--low); }
-        .stat-card.total .value { color: var(--accent); }
-        .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
-        .tab { padding: 0.75rem 1.5rem; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.85rem; font-family: monospace; text-transform: uppercase; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-        .tab:hover { color: var(--text-primary); }
-        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .stat-card.total { --card-accent: var(--accent); }
+        .stat-card.total .value { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover { color: var(--text-primary); background: var(--glass); }
+
+        .tab.active {
+            color: var(--bg-primary);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
-        .form-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-        input, select { padding: 0.5rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-size: 0.85rem; }
-        input:focus, select:focus { outline: none; border-color: var(--accent); }
-        .btn { padding: 0.5rem 1.25rem; background: var(--accent); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
-        .btn:hover { opacity: 0.9; }
-        .btn.secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
-        .btn.small { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
-        .severity { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 3px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-        .severity.critical { background: rgba(255,42,109,0.2); color: var(--critical); }
-        .severity.high { background: rgba(255,159,28,0.2); color: var(--high); }
-        .severity.medium { background: rgba(241,196,15,0.2); color: var(--medium); }
-        .severity.low { background: rgba(52,152,219,0.2); color: var(--low); }
-        .severity.info { background: rgba(88,101,242,0.2); color: var(--info); }
-        .results-container { display: grid; grid-template-columns: 300px 1fr; gap: 1rem; min-height: 500px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+        input, select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn.secondary { background: var(--bg-tertiary); box-shadow: none; }
+        .btn.small { padding: 0.5rem 1rem; font-size: 0.8rem; }
+
+        /* Severity Badges */
+        .severity {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .severity.critical { background: rgba(255, 56, 96, 0.2); color: var(--critical); border: 1px solid rgba(255, 56, 96, 0.3); }
+        .severity.high { background: rgba(255, 159, 67, 0.2); color: var(--high); border: 1px solid rgba(255, 159, 67, 0.3); }
+        .severity.medium { background: rgba(254, 202, 87, 0.2); color: var(--medium); border: 1px solid rgba(254, 202, 87, 0.3); }
+        .severity.low { background: rgba(84, 160, 255, 0.2); color: var(--low); border: 1px solid rgba(84, 160, 255, 0.3); }
+        .severity.info { background: rgba(95, 39, 205, 0.2); color: var(--info); border: 1px solid rgba(95, 39, 205, 0.3); }
+
+        /* Results Container */
+        .results-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1rem;
+            min-height: 500px;
+        }
+
         @media (max-width: 900px) { .results-container { grid-template-columns: 1fr; } }
-        .plugin-list { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-        .plugin-list-header { padding: 0.75rem 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: bold; }
-        .plugin-list-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
-        .plugin-list-item:hover { background: var(--bg-tertiary); }
-        .plugin-list-item.active { background: var(--bg-tertiary); border-left: 3px solid var(--accent); }
-        .plugin-list-item .name { font-family: monospace; font-size: 0.85rem; }
-        .plugin-list-item .type { font-size: 0.65rem; color: var(--text-secondary); }
-        .plugin-list-item .status { width: 8px; height: 8px; border-radius: 50%; background: var(--text-secondary); }
-        .plugin-list-item .status.running { background: var(--accent); animation: pulse 1s infinite; }
-        .plugin-list-item .status.completed { background: var(--accent); }
+
+        .plugin-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .plugin-list-header {
+            padding: 1rem 1.25rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .plugin-list-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .plugin-list-item:hover { background: var(--glass); }
+        .plugin-list-item.active { background: var(--glass); border-left: 3px solid var(--accent); }
+        .plugin-list-item .name { font-weight: 500; font-size: 0.9rem; }
+        .plugin-list-item .type { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+        .plugin-list-item .status { width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); }
+        .plugin-list-item .status.running { background: var(--accent); animation: pulse 1s infinite; box-shadow: 0 0 10px var(--accent-glow); }
+        .plugin-list-item .status.completed { background: var(--success); }
         .plugin-list-item .status.failed { background: var(--critical); }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .results-panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-        .results-header { padding: 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .results-header h3 { font-family: monospace; font-size: 1rem; color: var(--accent); }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.9); } }
+
+        .results-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .results-header {
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-header h3 { font-size: 1rem; color: var(--accent); }
         .results-body { padding: 1rem; max-height: 600px; overflow-y: auto; }
-        .finding-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.75rem; overflow: hidden; }
-        .finding-card.critical { border-left: 3px solid var(--critical); }
-        .finding-card.high { border-left: 3px solid var(--high); }
-        .finding-card.medium { border-left: 3px solid var(--medium); }
-        .finding-card.low { border-left: 3px solid var(--low); }
-        .finding-card.info { border-left: 3px solid var(--info); }
-        .finding-header { padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
-        .finding-header:hover { background: rgba(255,255,255,0.02); }
-        .finding-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 0.25rem; }
-        .finding-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
-        .finding-details { display: none; padding: 0.75rem 1rem; border-top: 1px solid var(--border); background: var(--bg-primary); }
+
+        /* Finding Cards */
+        .finding-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .finding-card:hover { border-color: var(--accent); }
+        .finding-card.critical { border-left: 4px solid var(--critical); }
+        .finding-card.high { border-left: 4px solid var(--high); }
+        .finding-card.medium { border-left: 4px solid var(--medium); }
+        .finding-card.low { border-left: 4px solid var(--low); }
+        .finding-card.info { border-left: 4px solid var(--info); }
+
+        .finding-header {
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+
+        .finding-header:hover { background: var(--glass); }
+        .finding-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; }
+        .finding-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-secondary); flex-wrap: wrap; }
+
+        .finding-details {
+            display: none;
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
         .finding-details.open { display: block; }
-        .finding-details dt { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.5rem; }
-        .finding-details dd { font-size: 0.85rem; margin-top: 0.25rem; font-family: monospace; word-break: break-word; }
-        .workflow-progress { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
-        .workflow-step { flex: 1; min-width: 120px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; text-align: center; }
-        .workflow-step.completed { border-color: var(--accent); }
-        .workflow-step.running { border-color: var(--accent); animation: pulse 1s infinite; }
-        .workflow-step.failed { border-color: var(--critical); }
-        .workflow-step .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--border); color: var(--text-primary); font-size: 0.75rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; }
-        .workflow-step.completed .step-num, .workflow-step.running .step-num { background: var(--accent); color: #000; }
-        .workflow-step .step-name { font-size: 0.75rem; font-family: monospace; }
-        .workflow-step .step-findings { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem; }
-        .ti-verdict { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
-        .ti-verdict.clean { background: rgba(0,255,148,0.1); border: 1px solid var(--accent); }
-        .ti-verdict.suspicious { background: rgba(255,159,28,0.1); border: 1px solid var(--high); }
-        .ti-verdict.malicious { background: rgba(255,42,109,0.1); border: 1px solid var(--critical); }
-        .ti-verdict-icon { font-size: 2rem; }
-        .ti-verdict-label { font-size: 1.25rem; font-weight: bold; text-transform: uppercase; }
-        .ti-verdict.clean .ti-verdict-label { color: var(--accent); }
+        .finding-details dt { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-top: 0.75rem; font-weight: 600; }
+        .finding-details dd { font-size: 0.9rem; margin-top: 0.25rem; color: var(--text-secondary); }
+
+        /* Live Status Indicator */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 210, 106, 0.1);
+            border: 1px solid rgba(0, 210, 106, 0.3);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        .live-indicator.disconnected {
+            background: rgba(255, 56, 96, 0.1);
+            border-color: rgba(255, 56, 96, 0.3);
+            color: var(--critical);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: livePulse 2s infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+            50% { opacity: 0.5; box-shadow: 0 0 0 4px transparent; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* ======================= */
+        /* DNS PROPAGATION MAP STYLES - DNSChecker.org Style */
+        /* ======================= */
+
+        .dns-map-container {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .dns-map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .dns-map-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .dns-map-title span {
+            color: #4a90d9;
+        }
+
+        .dns-map-menu {
+            width: 36px;
+            height: 36px;
+            background: #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .dns-map-menu span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            background: #fff;
+            position: relative;
+        }
+
+        .dns-map-menu span::before,
+        .dns-map-menu span::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 2px;
+            background: #fff;
+            left: 0;
+        }
+
+        .dns-map-menu span::before { top: -6px; }
+        .dns-map-menu span::after { top: 6px; }
+
+        .dns-world-map {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(180deg, #e8f4fc 0%, #f5f9fc 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dns-map-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .dns-map-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .dns-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .dns-legend-marker {
+            width: 20px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dns-legend-marker.location svg { fill: #f39c12; }
+        .dns-legend-marker.resolved { color: #27ae60; font-size: 1.2rem; }
+        .dns-legend-marker.not-resolved { color: #e74c3c; font-size: 1.2rem; }
+
+        .dns-marker {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .dns-marker:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
+        /* DNS Summary Bar */
+        .dns-summary-bar {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .dns-summary-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .dns-summary-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dns-summary-dot.success { background: var(--success); box-shadow: 0 0 10px rgba(0, 210, 106, 0.5); }
+        .dns-summary-dot.error { background: var(--critical); box-shadow: 0 0 10px rgba(255, 56, 96, 0.5); }
+        .dns-summary-dot.timeout { background: var(--high); }
+
+        .dns-propagation-bar {
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .dns-propagation-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--critical) 0%, var(--high) 50%, var(--success) 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* DNS Results Grid */
+        .dns-results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 1rem 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .dns-result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .dns-result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .dns-result-card.success { border-left: 4px solid var(--success); }
+        .dns-result-card.error { border-left: 4px solid var(--critical); }
+        .dns-result-card.timeout { border-left: 4px solid var(--high); }
+
+        .dns-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .dns-result-server { font-weight: 600; font-size: 0.95rem; }
+        .dns-result-location { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem; }
+        .dns-result-records { font-family: 'SF Mono', monospace; font-size: 0.85rem; color: var(--accent); word-break: break-all; }
+        .dns-result-meta { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.75rem; }
+
+        .dns-record-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* DNS Tooltip */
+        .dns-tooltip {
+            position: absolute;
+            background: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.85rem;
+            z-index: 100;
+            pointer-events: none;
+            min-width: 220px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        .dns-tooltip-header {
+            font-weight: 700;
+            color: #4a90d9;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .dns-tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.4rem 0;
+        }
+
+        .dns-tooltip-label { color: #888; }
+        .dns-tooltip-value { color: #333; font-family: monospace; font-weight: 500; }
+
+        /* Workflow Styles */
+        .workflow-progress {
+            display: flex;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .workflow-step {
+            flex: 1;
+            min-width: 140px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .workflow-step.completed { border-color: var(--success); background: rgba(0, 210, 106, 0.1); }
+        .workflow-step.running { border-color: var(--accent); animation: borderPulse 1.5s infinite; }
+        .workflow-step.failed { border-color: var(--critical); background: rgba(255, 56, 96, 0.1); }
+
+        @keyframes borderPulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 0 0 4px var(--accent-glow); }
+        }
+
+        .workflow-step .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--border);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+        }
+
+        .workflow-step.completed .step-num { background: var(--success); color: #fff; }
+        .workflow-step.running .step-num { background: var(--accent); color: #fff; }
+        .workflow-step .step-name { font-size: 0.8rem; font-weight: 500; }
+        .workflow-step .step-findings { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+        /* Threat Intel Styles */
+        .ti-verdict {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .ti-verdict.clean { background: rgba(0, 210, 106, 0.1); border: 1px solid rgba(0, 210, 106, 0.3); }
+        .ti-verdict.suspicious { background: rgba(255, 159, 67, 0.1); border: 1px solid rgba(255, 159, 67, 0.3); }
+        .ti-verdict.malicious { background: rgba(255, 56, 96, 0.1); border: 1px solid rgba(255, 56, 96, 0.3); }
+
+        .ti-verdict-icon { font-size: 2.5rem; }
+        .ti-verdict-label { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
+        .ti-verdict.clean .ti-verdict-label { color: var(--success); }
         .ti-verdict.suspicious .ti-verdict-label { color: var(--high); }
         .ti-verdict.malicious .ti-verdict-label { color: var(--critical); }
-        .ti-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
-        .ti-detail { background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px; }
-        .ti-detail-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; }
-        .ti-detail-value { font-size: 1rem; font-weight: bold; margin-top: 0.25rem; }
-        .live-feed { max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; }
-        .feed-item { padding: 0.5rem; border-bottom: 1px solid var(--border); }
-        .feed-item .time { color: var(--text-secondary); }
-        .feed-item .type { color: var(--accent); }
-        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
-        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
-        .status-dot.connected { background: var(--accent); }
-        .status-dot.disconnected { background: var(--critical); }
 
-        /* DNS Propagation Map Styles */
-        .dns-map-container { position: relative; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-        .dns-world-map { width: 100%; height: 450px; background: linear-gradient(180deg, #0d1117 0%, #161b22 100%); position: relative; }
-        .dns-map-svg { width: 100%; height: 100%; }
-        .dns-marker { cursor: pointer; transition: all 0.3s ease; }
-        .dns-marker:hover { transform: scale(1.3); }
-        .dns-marker.success { fill: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); }
-        .dns-marker.error { fill: var(--critical); filter: drop-shadow(0 0 4px var(--critical)); }
-        .dns-marker.pending { fill: var(--text-secondary); animation: pulse 1s infinite; }
-        .dns-marker.timeout { fill: var(--high); filter: drop-shadow(0 0 4px var(--high)); }
-        .dns-summary-bar { display: flex; gap: 1rem; padding: 1rem; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
-        .dns-summary-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
-        .dns-summary-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dns-summary-dot.success { background: var(--accent); }
-        .dns-summary-dot.error { background: var(--critical); }
-        .dns-summary-dot.timeout { background: var(--high); }
-        .dns-propagation-bar { height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; flex: 1; min-width: 150px; }
-        .dns-propagation-fill { height: 100%; background: linear-gradient(90deg, var(--critical), var(--high), var(--accent)); border-radius: 3px; transition: width 0.5s ease; }
-        .dns-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; padding: 1rem; max-height: 350px; overflow-y: auto; }
-        .dns-result-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; }
-        .dns-result-card.success { border-left: 3px solid var(--accent); }
-        .dns-result-card.error { border-left: 3px solid var(--critical); }
-        .dns-result-card.timeout { border-left: 3px solid var(--high); }
-        .dns-result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .dns-result-server { font-weight: bold; font-family: monospace; color: var(--text-primary); }
-        .dns-result-location { font-size: 0.75rem; color: var(--text-secondary); }
-        .dns-result-records { font-family: monospace; font-size: 0.8rem; color: var(--accent); word-break: break-all; }
-        .dns-result-meta { display: flex; gap: 1rem; font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem; }
-        .dns-tooltip { position: absolute; background: var(--bg-primary); border: 1px solid var(--accent); border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; z-index: 100; pointer-events: none; min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        .dns-tooltip-header { font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-        .dns-tooltip-row { display: flex; justify-content: space-between; margin: 0.25rem 0; }
-        .dns-tooltip-label { color: var(--text-secondary); }
-        .dns-tooltip-value { color: var(--text-primary); font-family: monospace; }
-        .dns-record-badge { display: inline-block; padding: 0.15rem 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 3px; font-size: 0.7rem; font-family: monospace; margin-right: 0.25rem; }
+        .ti-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .ti-detail {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .ti-detail-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .ti-detail-value { font-size: 1.1rem; font-weight: 600; margin-top: 0.25rem; }
+
+        /* Live Feed */
+        .live-feed {
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .feed-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            transition: background 0.2s;
+        }
+
+        .feed-item:hover { background: var(--glass); }
+        .feed-item .time { color: var(--text-secondary); min-width: 80px; }
+        .feed-item .type { color: var(--accent); min-width: 150px; }
+
+        /* Section Headers */
+        h2 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin: 1.5rem 0 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h2::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div>
-                <h1>API GUARDIAN</h1>
-                <p class="meta">Enterprise API Security Testing Platform • <span class="status-dot" id="ws-dot"></span><span id="ws-status">Connecting...</span></p>
+            <div class="logo-section">
+                <div class="logo-icon">🛡️</div>
+                <div>
+                    <h1>API GUARDIAN</h1>
+                    <p class="meta">Enterprise API Security Platform</p>
+                </div>
             </div>
-            <div><input type="text" id="globalTarget" placeholder="https://api.example.com" style="width: 300px" /></div>
+            <div class="target-input">
+                <span style="color: var(--text-secondary); padding-left: 0.5rem;">🎯</span>
+                <input type="text" id="globalTarget" placeholder="https://api.example.com" />
+            </div>
+            <div class="live-indicator" id="connectionStatus">
+                <div class="live-dot"></div>
+                <span id="ws-status">Connecting...</span>
+            </div>
         </div>
+
         <div class="stats-grid">
-            <div class="stat-card total"><div class="label">Total Findings</div><div class="value" id="total">0</div></div>
-            <div class="stat-card critical"><div class="label">Critical</div><div class="value" id="critical">0</div></div>
-            <div class="stat-card high"><div class="label">High</div><div class="value" id="high">0</div></div>
-            <div class="stat-card medium"><div class="label">Medium</div><div class="value" id="medium">0</div></div>
-            <div class="stat-card low"><div class="label">Low/Info</div><div class="value" id="low">0</div></div>
-            <div class="stat-card total"><div class="label">Security Score</div><div class="value" id="score">100</div></div>
+            <div class="stat-card total">
+                <div class="label">Total Findings</div>
+                <div class="value" id="total">0</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="label">Critical</div>
+                <div class="value" id="critical">0</div>
+            </div>
+            <div class="stat-card high">
+                <div class="label">High</div>
+                <div class="value" id="high">0</div>
+            </div>
+            <div class="stat-card medium">
+                <div class="label">Medium</div>
+                <div class="value" id="medium">0</div>
+            </div>
+            <div class="stat-card low">
+                <div class="label">Low/Info</div>
+                <div class="value" id="low">0</div>
+            </div>
+            <div class="stat-card total">
+                <div class="label">Security Score</div>
+                <div class="value" id="score">100</div>
+            </div>
         </div>
+
         <div class="tabs">
-            <button class="tab active" onclick="showTab('plugins')">Security Plugins</button>
-            <button class="tab" onclick="showTab('workflows')">Workflows</button>
-            <button class="tab" onclick="showTab('findings')">All Findings</button>
-            <button class="tab" onclick="showTab('threatintel')">Threat Intel</button>
-            <button class="tab" onclick="showTab('dnspropagation')">DNS Propagation</button>
-            <button class="tab" onclick="showTab('live')">Live Feed</button>
+            <button class="tab active" onclick="showTab('plugins')">🔌 Security Plugins</button>
+            <button class="tab" onclick="showTab('workflows')">⚡ Workflows</button>
+            <button class="tab" onclick="showTab('findings')">🔍 All Findings</button>
+            <button class="tab" onclick="showTab('threatintel')">🌐 Threat Intel</button>
+            <button class="tab" onclick="showTab('dnspropagation')">🗺️ Live DNS Map</button>
+            <button class="tab" onclick="showTab('live')">📡 Live Feed</button>
         </div>
+
         <div id="tab-plugins" class="tab-content active">
             <div class="results-container">
                 <div class="plugin-list">
@@ -197,55 +866,85 @@
                 <div class="results-panel">
                     <div class="results-header">
                         <h3 id="selectedPluginName">Select a Plugin</h3>
-                        <div><button class="btn small" id="runPluginBtn" onclick="runSelectedPlugin()" disabled>Run Plugin</button></div>
+                        <button class="btn small" id="runPluginBtn" onclick="runSelectedPlugin()" disabled>▶ Run Plugin</button>
                     </div>
                     <div class="results-body" id="pluginResults">
-                        <div class="empty-state"><div class="icon">🔍</div><p>Select a plugin from the list and click "Run Plugin" to see results</p></div>
+                        <div class="empty-state">
+                            <div class="icon">🔌</div>
+                            <p>Select a plugin from the list and click "Run Plugin" to see results</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div id="tab-workflows" class="tab-content">
             <div class="panel">
                 <h2 style="margin-top: 0;">Workflow Templates</h2>
                 <div class="form-row">
                     <select id="workflowTemplate" style="flex: 1;">
-                        <option value="quick_scan">Quick Security Scan (3 steps)</option>
-                        <option value="full_scan">Full Security Assessment (10 steps)</option>
-                        <option value="api_pentest">API Penetration Test (7 steps)</option>
-                        <option value="compliance_check">Compliance Check (4 steps)</option>
+                        <option value="quick_scan">⚡ Quick Security Scan (3 steps)</option>
+                        <option value="full_scan">🔒 Full Security Assessment (10 steps)</option>
+                        <option value="api_pentest">🎯 API Penetration Test (7 steps)</option>
+                        <option value="compliance_check">📋 Compliance Check (4 steps)</option>
                     </select>
-                    <button class="btn" onclick="startWorkflow()">Start Workflow</button>
+                    <button class="btn" onclick="startWorkflow()">▶ Start Workflow</button>
                 </div>
             </div>
-            <div id="workflowResults"><div class="empty-state"><div class="icon">⚡</div><p>Select a workflow template and click "Start Workflow" to begin</p></div></div>
+            <div id="workflowResults">
+                <div class="empty-state">
+                    <div class="icon">⚡</div>
+                    <p>Select a workflow template and click "Start Workflow" to begin</p>
+                </div>
+            </div>
         </div>
+
         <div id="tab-findings" class="tab-content">
             <div class="form-row">
                 <select id="severityFilter" onchange="fetchFindings()">
                     <option value="">All Severities</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                    <option value="info">Info</option>
+                    <option value="critical">🔴 Critical</option>
+                    <option value="high">🟠 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🔵 Low</option>
+                    <option value="info">🟣 Info</option>
                 </select>
-                <button class="btn secondary" onclick="fetchFindings()">Refresh</button>
+                <button class="btn secondary" onclick="fetchFindings()">🔄 Refresh</button>
             </div>
             <div id="findingsList"></div>
         </div>
+
         <div id="tab-threatintel" class="tab-content">
             <div class="panel">
                 <div class="form-row">
                     <input type="text" id="tiIndicator" placeholder="IP, URL, or Hash" style="flex: 1;" />
-                    <select id="tiType"><option value="ip">IP Address</option><option value="url">URL</option><option value="hash">File Hash</option></select>
-                    <select id="tiService"><option value="all">🔍 All Services (Aggregated)</option><option value="virustotal">VirusTotal</option><option value="abuseipdb">AbuseIPDB</option><option value="otx">AlienVault OTX</option><option value="pulsedive">PulseDive</option></select>
-                    <select id="tiMode"><option value="live">Live</option><option value="mock">Mock</option></select>
-                    <button class="btn" onclick="lookupTI()">Lookup</button>
+                    <select id="tiType">
+                        <option value="ip">🌐 IP Address</option>
+                        <option value="url">🔗 URL</option>
+                        <option value="hash">📝 File Hash</option>
+                    </select>
+                    <select id="tiService">
+                        <option value="all">🔍 All Services</option>
+                        <option value="virustotal">VirusTotal</option>
+                        <option value="abuseipdb">AbuseIPDB</option>
+                        <option value="otx">AlienVault OTX</option>
+                        <option value="pulsedive">PulseDive</option>
+                    </select>
+                    <select id="tiMode">
+                        <option value="live">📡 Live</option>
+                        <option value="mock">🧪 Mock</option>
+                    </select>
+                    <button class="btn" onclick="lookupTI()">🔍 Lookup</button>
                 </div>
             </div>
-            <div id="tiResults"><div class="empty-state"><div class="icon">🌐</div><p>Enter an indicator and click "Lookup" to check threat intelligence</p></div></div>
+            <div id="tiResults">
+                <div class="empty-state">
+                    <div class="icon">🌐</div>
+                    <p>Enter an indicator and click "Lookup" to check threat intelligence</p>
+                </div>
+            </div>
         </div>
+
         <div id="tab-dnspropagation" class="tab-content">
             <div class="panel">
                 <div class="form-row">
@@ -260,26 +959,151 @@
                         <option value="SOA">SOA</option>
                         <option value="CAA">CAA</option>
                     </select>
-                    <button class="btn" onclick="checkDNSPropagation()">Check Propagation</button>
+                    <button class="btn" onclick="checkDNSPropagation()">🌍 Check Propagation</button>
                 </div>
             </div>
             <div id="dnsResults">
-                <div class="empty-state">
-                    <div class="icon">🗺️</div>
-                    <p>Enter a domain and click "Check Propagation" to see DNS records across global servers</p>
-                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-secondary);">Similar to DNSChecker.org - Check if your DNS changes have propagated worldwide</p>
+                <div class="dns-map-container">
+                    <div class="dns-map-header">
+                        <div class="dns-map-title">DNS Propagation Map by <span>APIGuardian</span></div>
+                        <div class="dns-map-menu"><span></span></div>
+                    </div>
+                    <div class="dns-world-map" id="dnsWorldMap">
+                        ${renderInitialMap()}
+                    </div>
+                    <div class="dns-map-legend">
+                        <div class="dns-legend-item">
+                            <div class="dns-legend-marker location">
+                                <svg viewBox="0 0 24 32" width="20" height="26">
+                                    <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z"/>
+                                </svg>
+                            </div>
+                            <span>Server Location</span>
+                        </div>
+                        <div class="dns-legend-item">
+                            <div class="dns-legend-marker resolved">✓</div>
+                            <span>Resolved</span>
+                        </div>
+                        <div class="dns-legend-item">
+                            <div class="dns-legend-marker not-resolved">✗</div>
+                            <span>Not Resolved</span>
+                        </div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary);">
+                    Enter a domain above and click "Check Propagation" to see live DNS records from 80+ global servers
+                </p>
+            </div>
+        </div>
+
+        <div id="tab-live" class="tab-content">
+            <div class="panel">
+                <div class="live-feed" id="liveFeed">
+                    <div class="feed-item">
+                        <span class="time">[--:--:--]</span>
+                        <span class="type">[system]</span>
+                        <span>Waiting for events...</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="tab-live" class="tab-content">
-            <div class="panel"><div class="live-feed" id="liveFeed"><div class="feed-item"><span class="time">[--:--:--]</span> Waiting for events...</div></div></div>
-        </div>
     </div>
+
     <script>
         const API_BASE = '/api';
         const WS_PROTOCOL = location.protocol === 'https:' ? 'wss:' : 'ws:';
         let ws = null, plugins = [], selectedPlugin = null, allFindings = [], currentWorkflow = null, pluginResults = {};
-        
+
+        // Render initial map with world outline
+        function renderInitialMap() {
+            return `
+                <svg class="dns-map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e8f4fc"/>
+                            <stop offset="100%" style="stop-color:#d4e9f7"/>
+                        </linearGradient>
+                        <filter id="landShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.1"/>
+                        </filter>
+                    </defs>
+
+                    <!-- Ocean background -->
+                    <rect width="1000" height="500" fill="url(#oceanGradient)"/>
+
+                    <!-- World Map - Detailed Continents -->
+                    <g fill="#4a90d9" filter="url(#landShadow)">
+                        <!-- North America -->
+                        <path d="M 50 120 Q 60 80 120 60 Q 180 50 230 70 Q 260 60 280 80 Q 300 100 290 130 Q 270 150 260 180 Q 240 200 220 210 Q 200 220 180 220 Q 160 230 150 250 Q 140 270 130 260 Q 100 240 80 200 Q 60 170 50 120 Z"/>
+                        <!-- Greenland -->
+                        <path d="M 320 50 Q 380 40 400 60 Q 410 90 390 110 Q 360 120 330 100 Q 310 80 320 50 Z"/>
+                        <!-- South America -->
+                        <path d="M 200 280 Q 230 270 250 290 Q 270 320 280 360 Q 275 400 260 430 Q 240 460 210 450 Q 180 430 170 390 Q 165 350 175 310 Q 185 280 200 280 Z"/>
+                        <!-- Europe -->
+                        <path d="M 440 80 Q 470 70 510 80 Q 540 90 560 110 Q 570 130 550 150 Q 520 160 490 155 Q 460 150 440 130 Q 430 110 440 80 Z"/>
+                        <!-- UK -->
+                        <path d="M 420 90 Q 435 85 440 100 Q 445 115 430 120 Q 415 115 420 90 Z"/>
+                        <!-- Africa -->
+                        <path d="M 460 180 Q 500 170 540 190 Q 570 220 580 270 Q 575 330 550 380 Q 520 420 480 410 Q 450 390 440 340 Q 435 290 450 240 Q 455 200 460 180 Z"/>
+                        <!-- Middle East -->
+                        <path d="M 560 150 Q 600 140 630 160 Q 650 180 640 210 Q 610 230 580 220 Q 560 200 560 150 Z"/>
+                        <!-- Russia/Asia -->
+                        <path d="M 560 60 Q 650 40 750 50 Q 850 60 900 90 Q 930 120 920 160 Q 900 180 850 170 Q 800 175 750 160 Q 700 150 660 140 Q 620 130 580 120 Q 560 100 560 60 Z"/>
+                        <!-- India -->
+                        <path d="M 660 200 Q 700 190 720 220 Q 730 260 710 290 Q 680 300 660 280 Q 650 250 660 200 Z"/>
+                        <!-- Southeast Asia -->
+                        <path d="M 750 200 Q 780 190 810 210 Q 830 240 820 270 Q 790 280 760 260 Q 745 230 750 200 Z"/>
+                        <!-- China/East Asia -->
+                        <path d="M 750 120 Q 800 100 850 120 Q 880 150 870 180 Q 840 200 800 190 Q 760 175 750 120 Z"/>
+                        <!-- Japan -->
+                        <path d="M 890 130 Q 910 120 920 140 Q 925 165 910 180 Q 895 175 890 130 Z"/>
+                        <!-- Indonesia -->
+                        <path d="M 780 300 Q 820 295 850 305 Q 870 320 860 340 Q 830 350 800 340 Q 775 325 780 300 Z"/>
+                        <!-- Australia -->
+                        <path d="M 820 360 Q 880 350 920 380 Q 940 420 920 450 Q 880 470 840 460 Q 800 440 810 400 Q 815 375 820 360 Z"/>
+                        <!-- New Zealand -->
+                        <path d="M 960 430 Q 975 420 980 440 Q 985 465 970 475 Q 955 470 960 430 Z"/>
+                    </g>
+
+                    <!-- Sample markers showing coverage -->
+                    <g class="sample-markers" opacity="0.6">
+                        ${generateSampleMarkers()}
+                    </g>
+                </svg>
+            `;
+        }
+
+        function generateSampleMarkers() {
+            // Sample global DNS server locations
+            const locations = [
+                {lat: 37.7749, lon: -122.4194}, // San Francisco
+                {lat: 40.7128, lon: -74.0060},  // New York
+                {lat: 51.5074, lon: -0.1278},   // London
+                {lat: 48.8566, lon: 2.3522},    // Paris
+                {lat: 52.5200, lon: 13.4050},   // Berlin
+                {lat: 35.6762, lon: 139.6503},  // Tokyo
+                {lat: 31.2304, lon: 121.4737},  // Shanghai
+                {lat: 1.3521, lon: 103.8198},   // Singapore
+                {lat: -33.8688, lon: 151.2093}, // Sydney
+                {lat: 19.4326, lon: -99.1332},  // Mexico City
+                {lat: -23.5505, lon: -46.6333}, // São Paulo
+                {lat: 55.7558, lon: 37.6173},   // Moscow
+                {lat: 28.6139, lon: 77.2090},   // New Delhi
+                {lat: -26.2041, lon: 28.0473},  // Johannesburg
+                {lat: 25.2048, lon: 55.2708},   // Dubai
+            ];
+
+            return locations.map(loc => {
+                const pos = latLonToXY(loc.lat, loc.lon, 1000, 500);
+                return `
+                    <g transform="translate(${pos.x - 8}, ${pos.y - 24})">
+                        <path d="M8 0C3.6 0 0 3.6 0 8c0 6 8 14 8 14s8-8 8-14c0-4.4-3.6-8-8-8z" fill="#f39c12"/>
+                        <circle cx="8" cy="8" r="3" fill="#fff"/>
+                    </g>
+                `;
+            }).join('');
+        }
+
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -287,7 +1111,7 @@
             document.getElementById(`tab-${tabName}`).classList.add('active');
             if (tabName === 'findings') fetchFindings();
         }
-        
+
         async function fetchMetrics() {
             try {
                 const res = await fetch(`${API_BASE}/metrics`);
@@ -300,7 +1124,7 @@
                 document.getElementById('score').textContent = data.security_score || 100;
             } catch(e) { console.error('Metrics error:', e); }
         }
-        
+
         async function fetchPlugins() {
             try {
                 const res = await fetch(`${API_BASE}/plugins`);
@@ -308,39 +1132,66 @@
                 renderPluginsList();
             } catch(e) { console.error('Plugins error:', e); }
         }
-        
+
         function renderPluginsList() {
             const list = document.getElementById('pluginsList');
             const grouped = plugins.reduce((acc, p) => { if (!acc[p.type]) acc[p.type] = []; acc[p.type].push(p); return acc; }, {});
             let html = '';
             for (const [type, items] of Object.entries(grouped)) {
-                html += `<div class="plugin-list-header" style="background: var(--bg-primary); font-size: 0.7rem; color: var(--accent);">${type.toUpperCase()}S</div>`;
+                html += `<div class="plugin-list-header" style="background: var(--bg-primary); font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">${type}s</div>`;
                 for (const p of items) {
-                    html += `<div class="plugin-list-item ${selectedPlugin?.name === p.name ? 'active' : ''}" onclick="selectPlugin('${p.type}', '${p.name}')"><div><div class="name">${p.name}</div><div class="type">${p.description.slice(0, 40)}...</div></div><div class="status ${p.status || ''}"></div></div>`;
+                    html += `<div class="plugin-list-item ${selectedPlugin?.name === p.name ? 'active' : ''}" onclick="selectPlugin('${p.type}', '${p.name}')">
+                        <div>
+                            <div class="name">${p.name}</div>
+                            <div class="type">${p.description.slice(0, 45)}...</div>
+                        </div>
+                        <div class="status ${p.status || ''}"></div>
+                    </div>`;
                 }
             }
             list.innerHTML = html;
         }
-        
+
         function selectPlugin(type, name) {
             selectedPlugin = plugins.find(p => p.type === type && p.name === name);
             document.getElementById('selectedPluginName').textContent = selectedPlugin.name;
             document.getElementById('runPluginBtn').disabled = false;
             renderPluginsList();
-            document.getElementById('pluginResults').innerHTML = `<div style="padding: 1rem;"><h3 style="color: var(--accent); margin-bottom: 0.5rem;">${selectedPlugin.name}</h3><p style="color: var(--text-secondary); margin-bottom: 1rem;">${selectedPlugin.description}</p><div style="display: flex; gap: 1rem; font-size: 0.85rem;"><span><strong>Type:</strong> ${selectedPlugin.type}</span><span><strong>Version:</strong> ${selectedPlugin.version}</span></div><p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.85rem;">Enter a target URL above and click "Run Plugin" to execute.</p></div>`;
+            document.getElementById('pluginResults').innerHTML = `
+                <div style="padding: 1.5rem;">
+                    <h3 style="color: var(--accent); margin-bottom: 0.75rem; font-size: 1.1rem;">${selectedPlugin.name}</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">${selectedPlugin.description}</p>
+                    <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        <span><strong style="color: var(--accent);">Type:</strong> ${selectedPlugin.type}</span>
+                        <span><strong style="color: var(--accent);">Version:</strong> ${selectedPlugin.version}</span>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; padding: 1rem; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid var(--accent);">
+                        💡 Enter a target URL above and click "Run Plugin" to execute this security check.
+                    </p>
+                </div>
+            `;
         }
-        
+
         async function runSelectedPlugin() {
             const target = document.getElementById('globalTarget').value;
             if (!target) { alert('Please enter a target URL'); return; }
             if (!selectedPlugin) { alert('Please select a plugin'); return; }
-            document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Running ${selectedPlugin.name} against ${target}...</p></div>`;
+            document.getElementById('pluginResults').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon" style="animation: pulse 1s infinite;">⚡</div>
+                    <p>Running <strong>${selectedPlugin.name}</strong> against<br><code style="color: var(--accent)">${target}</code></p>
+                </div>
+            `;
             const plugin = plugins.find(p => p.name === selectedPlugin.name);
             if (plugin) plugin.status = 'running';
             renderPluginsList();
             pluginResults[selectedPlugin.name] = null;
             try {
-                await fetch(`${API_BASE}/plugins/${selectedPlugin.type}/${selectedPlugin.name}/run`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ target, config: {} }) });
+                await fetch(`${API_BASE}/plugins/${selectedPlugin.type}/${selectedPlugin.name}/run`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ target, config: {} })
+                });
                 addFeedItem('plugin.started', `${selectedPlugin.name} started on ${target}`);
             } catch(e) {
                 document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Error running plugin</p></div>`;
@@ -348,7 +1199,7 @@
                 renderPluginsList();
             }
         }
-        
+
         function handlePluginCompleted(data) {
             const pluginName = data.plugin, findings = data.findings || [];
             pluginResults[pluginName] = findings;
@@ -358,54 +1209,102 @@
             if (selectedPlugin && selectedPlugin.name === pluginName) displayPluginFindings(findings, pluginName, data.target);
             fetchMetrics();
         }
-        
+
         function handlePluginFailed(data) {
             const plugin = plugins.find(p => p.name === data.plugin);
             if (plugin) plugin.status = 'failed';
             renderPluginsList();
-            if (selectedPlugin && selectedPlugin.name === data.plugin) document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Plugin failed: ${data.error || 'Unknown error'}</p></div>`;
+            if (selectedPlugin && selectedPlugin.name === data.plugin) {
+                document.getElementById('pluginResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Plugin failed: ${data.error || 'Unknown error'}</p></div>`;
+            }
         }
-        
+
         function displayPluginFindings(findings, pluginName, target) {
             const resultsDiv = document.getElementById('pluginResults');
             if (!findings || findings.length === 0) {
-                resultsDiv.innerHTML = `<div style="padding: 1rem;"><div class="ti-verdict clean"><div class="ti-verdict-icon">✓</div><div><div class="ti-verdict-label">No Issues Found</div><div style="font-size: 0.85rem; color: var(--text-secondary);">${pluginName} completed without detecting issues on ${target || 'target'}.</div></div></div></div>`;
+                resultsDiv.innerHTML = `
+                    <div style="padding: 1.5rem;">
+                        <div class="ti-verdict clean">
+                            <div class="ti-verdict-icon">✓</div>
+                            <div>
+                                <div class="ti-verdict-label">No Issues Found</div>
+                                <div style="font-size: 0.9rem; color: var(--text-secondary);">${pluginName} completed without detecting issues on ${target || 'target'}.</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 return;
             }
             const counts = findings.reduce((acc, f) => { const sev = (f.severity || 'info').toLowerCase(); acc[sev] = (acc[sev] || 0) + 1; return acc; }, {});
-            let summaryHtml = '<div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">';
+            let summaryHtml = '<div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">';
             if (counts.critical) summaryHtml += `<span class="severity critical">${counts.critical} Critical</span>`;
             if (counts.high) summaryHtml += `<span class="severity high">${counts.high} High</span>`;
             if (counts.medium) summaryHtml += `<span class="severity medium">${counts.medium} Medium</span>`;
             if (counts.low) summaryHtml += `<span class="severity low">${counts.low} Low</span>`;
             if (counts.info) summaryHtml += `<span class="severity info">${counts.info} Info</span>`;
             summaryHtml += '</div>';
-            let html = `<div style="padding: 0.5rem;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;"><h4 style="color: var(--accent);">${findings.length} Finding(s) from ${pluginName}</h4><span style="color: var(--text-secondary); font-size: 0.8rem;">Target: ${target || 'N/A'}</span></div>${summaryHtml}`;
+            let html = `<div style="padding: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="color: var(--accent); font-size: 1rem;">${findings.length} Finding(s) from ${pluginName}</h4>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">Target: ${target || 'N/A'}</span>
+                </div>
+                ${summaryHtml}`;
             for (const f of findings) html += createFindingCard(f);
             html += '</div>';
             resultsDiv.innerHTML = html;
         }
-        
+
         function createFindingCard(f) {
             const sev = (f.severity || 'info').toLowerCase();
-            return `<div class="finding-card ${sev}" onclick="toggleFinding(this)"><div class="finding-header"><div><div class="finding-title">${f.issue || 'Unknown Issue'}</div><div class="finding-meta"><span class="severity ${sev}">${sev}</span><span>📍 ${f.endpoint || 'N/A'}</span><span>🏷️ ${f.category || 'General'}</span></div></div></div><div class="finding-details"><dl><dt>Description</dt><dd>${f.description || f.issue || 'N/A'}</dd><dt>Evidence</dt><dd>${f.evidence || 'N/A'}</dd><dt>CWE ID</dt><dd>${f.cwe_id || 'N/A'}</dd><dt>Recommendation</dt><dd>${f.recommendation || 'Review and remediate'}</dd></dl></div></div>`;
+            return `
+                <div class="finding-card ${sev}" onclick="toggleFinding(this)">
+                    <div class="finding-header">
+                        <div>
+                            <div class="finding-title">${f.issue || 'Unknown Issue'}</div>
+                            <div class="finding-meta">
+                                <span class="severity ${sev}">${sev}</span>
+                                <span>📍 ${f.endpoint || 'N/A'}</span>
+                                <span>🏷️ ${f.category || 'General'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="finding-details">
+                        <dl>
+                            <dt>Description</dt>
+                            <dd>${f.description || f.issue || 'N/A'}</dd>
+                            <dt>Evidence</dt>
+                            <dd>${f.evidence || 'N/A'}</dd>
+                            <dt>CWE ID</dt>
+                            <dd>${f.cwe_id || 'N/A'}</dd>
+                            <dt>Recommendation</dt>
+                            <dd>${f.recommendation || 'Review and remediate'}</dd>
+                        </dl>
+                    </div>
+                </div>
+            `;
         }
-        
+
         function toggleFinding(el) { el.querySelector('.finding-details').classList.toggle('open'); }
-        
+
         async function startWorkflow() {
             const target = document.getElementById('globalTarget').value, template = document.getElementById('workflowTemplate').value;
             if (!target) { alert('Please enter a target URL'); return; }
             document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">⚡</div><p>Starting workflow...</p></div></div>`;
             try {
-                const res = await fetch(`${API_BASE}/workflows`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ template, target }) });
+                const res = await fetch(`${API_BASE}/workflows`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ template, target })
+                });
                 const data = await res.json();
                 currentWorkflow = data.workflow_id;
                 addFeedItem('workflow.started', `${template} started`);
                 pollWorkflowStatus();
-            } catch(e) { document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">❌</div><p>Error starting workflow</p></div></div>`; }
+            } catch(e) {
+                document.getElementById('workflowResults').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">❌</div><p>Error starting workflow</p></div></div>`;
+            }
         }
-        
+
         async function pollWorkflowStatus() {
             if (!currentWorkflow) return;
             try {
@@ -416,19 +1315,31 @@
                 else fetchMetrics();
             } catch(e) { console.error('Workflow poll error:', e); }
         }
-        
+
         function displayWorkflowProgress(workflow) {
             let stepsHtml = '<div class="workflow-progress">';
             workflow.steps.forEach((step, i) => {
                 const statusClass = step.status === 'completed' ? 'completed' : step.status === 'running' ? 'running' : step.status === 'failed' ? 'failed' : '';
-                stepsHtml += `<div class="workflow-step ${statusClass}"><div class="step-num">${i + 1}</div><div class="step-name">${step.name}</div><div class="step-findings">${step.status}</div></div>`;
+                stepsHtml += `<div class="workflow-step ${statusClass}">
+                    <div class="step-num">${i + 1}</div>
+                    <div class="step-name">${step.name}</div>
+                    <div class="step-findings">${step.status}</div>
+                </div>`;
             });
             stepsHtml += '</div>';
             const statusIcon = workflow.status === 'completed' ? '✓' : workflow.status === 'failed' ? '✗' : '⚡';
-            const statusColor = workflow.status === 'completed' ? 'var(--accent)' : workflow.status === 'failed' ? 'var(--critical)' : 'var(--medium)';
-            document.getElementById('workflowResults').innerHTML = `<div class="panel"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;"><h3 style="color: var(--accent);">${workflow.name}</h3><span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${workflow.status.toUpperCase()}</span></div>${stepsHtml}</div>`;
+            const statusColor = workflow.status === 'completed' ? 'var(--success)' : workflow.status === 'failed' ? 'var(--critical)' : 'var(--accent)';
+            document.getElementById('workflowResults').innerHTML = `
+                <div class="panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: var(--accent);">${workflow.name}</h3>
+                        <span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${workflow.status.toUpperCase()}</span>
+                    </div>
+                    ${stepsHtml}
+                </div>
+            `;
         }
-        
+
         async function fetchFindings() {
             const severity = document.getElementById('severityFilter').value;
             try {
@@ -437,132 +1348,227 @@
                 displayAllFindings();
             } catch(e) { console.error('Findings error:', e); }
         }
-        
+
         function displayAllFindings() {
             const container = document.getElementById('findingsList');
-            if (!allFindings || allFindings.length === 0) { container.innerHTML = `<div class="empty-state"><div class="icon">🔐</div><p>No findings yet. Run a scan to detect issues.</p></div>`; return; }
+            if (!allFindings || allFindings.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">🔐</div><p>No findings yet. Run a scan to detect issues.</p></div>`;
+                return;
+            }
             container.innerHTML = allFindings.map(f => createFindingCard(f)).join('');
         }
-        
+
         async function lookupTI() {
-            const indicator = document.getElementById('tiIndicator').value, type = document.getElementById('tiType').value, service = document.getElementById('tiService').value, mode = document.getElementById('tiMode').value;
+            const indicator = document.getElementById('tiIndicator').value;
+            const type = document.getElementById('tiType').value;
+            const service = document.getElementById('tiService').value;
+            const mode = document.getElementById('tiMode').value;
             if (!indicator) { alert('Please enter an indicator'); return; }
-            document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">🔍</div><p>Looking up ${indicator}...</p></div>`;
+            document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon" style="animation: pulse 1s infinite;">🔍</div><p>Looking up <strong>${indicator}</strong>...</p></div>`;
             try {
                 if (service === 'all') {
-                    // Use aggregated endpoint
                     const res = await fetch(`${API_BASE}/threatintel/lookup-all?indicator=${encodeURIComponent(indicator)}&indicator_type=${type}&mode=${mode}`, { method: 'POST' });
                     displayAggregatedTIResults(await res.json());
                 } else {
-                    // Use single service endpoint
-                    const res = await fetch(`${API_BASE}/threatintel/lookup`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ indicator, indicator_type: type, service, mode }) });
+                    const res = await fetch(`${API_BASE}/threatintel/lookup`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ indicator, indicator_type: type, service, mode })
+                    });
                     displayTIResults(await res.json(), indicator, service);
                 }
-            } catch(e) { console.error('TI Lookup Error:', e); document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed: ${e.message}</p></div>`; }
+            } catch(e) {
+                console.error('TI Lookup Error:', e);
+                document.getElementById('tiResults').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Lookup failed: ${e.message}</p></div>`;
+            }
         }
-        
+
         function displayTIResults(data, indicator, service) {
             const threatLevel = (data.threat_level || 'unknown').toLowerCase();
             let verdictClass, verdictIcon, verdictLabel, verdictDesc;
-            if (threatLevel === 'clean' || threatLevel === 'safe') { verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected.'; }
-            else if (threatLevel === 'suspicious' || threatLevel === 'medium') { verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected.'; }
-            else if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') { verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Threats confirmed!'; }
-            else { verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.'; }
+            if (threatLevel === 'clean' || threatLevel === 'safe') {
+                verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected.';
+            } else if (threatLevel === 'suspicious' || threatLevel === 'medium') {
+                verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected.';
+            } else if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') {
+                verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Threats confirmed!';
+            } else {
+                verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.';
+            }
             let detailsHtml = '';
-            if (service === 'virustotal') { detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: ${(data.malicious||0) > 0 ? 'var(--critical)' : 'var(--accent)'}">${data.malicious||0}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || 'N/A'}</div></div>`; }
-            else if (service === 'abuseipdb') { const s = data.abuse_confidence_score||0, r = data.total_reports||0; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Abuse Score</div><div class="ti-detail-value" style="color: ${s>=50||r>=100 ? 'var(--critical)' : s>=25||r>=10 ? 'var(--high)' : 'var(--accent)'}">${s}%</div></div><div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value">${r}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country_code||'N/A'}</div></div><div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp||'N/A'}</div></div>`; }
-            else if (service === 'otx') { const p = data.pulse_count||0; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Pulse Count</div><div class="ti-detail-value" style="color: ${p>=10 ? 'var(--critical)' : p>=3 ? 'var(--high)' : 'var(--accent)'}">${p}</div></div><div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country||data.country_code||'N/A'}</div></div><div class="ti-detail"><div class="ti-detail-label">ASN</div><div class="ti-detail-value">${data.asn||'N/A'}</div></div>`; }
-            else if (service === 'pulsedive') { const risk = data.risk||'none', threats = data.threats||[], rf = data.risk_factors||[]; detailsHtml = `<div class="ti-detail"><div class="ti-detail-label">Risk</div><div class="ti-detail-value" style="color: ${risk==='critical'||risk==='high' ? 'var(--critical)' : risk==='medium' ? 'var(--high)' : 'var(--accent)'}; text-transform: uppercase;">${risk}</div></div><div class="ti-detail"><div class="ti-detail-label">Threats</div><div class="ti-detail-value" style="color: ${threats.length>0 ? 'var(--critical)' : 'var(--accent)'}">${threats.length>0 ? threats.join(', ') : 'None'}</div></div><div class="ti-detail"><div class="ti-detail-label">Risk Factors</div><div class="ti-detail-value">${rf.length>0 ? rf.slice(0,3).join(', ') : 'None'}</div></div>`; }
-            detailsHtml += `<div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.8rem; word-break: break-all;">${indicator}</div></div>`;
-            document.getElementById('tiResults').innerHTML = `<div class="panel"><div class="ti-verdict ${verdictClass}"><div class="ti-verdict-icon">${verdictIcon}</div><div><div class="ti-verdict-label">${verdictLabel}</div><div style="font-size: 0.85rem; color: var(--text-secondary);">${verdictDesc}</div></div></div><div class="ti-details">${detailsHtml}</div><details style="margin-top: 1rem;"><summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.8rem;">Raw Response</summary><pre style="margin-top: 0.5rem; font-size: 0.75rem; overflow-x: auto; background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px;">${JSON.stringify(data, null, 2)}</pre></details></div>`;
+            if (service === 'virustotal') {
+                detailsHtml = `
+                    <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: ${(data.malicious||0) > 0 ? 'var(--critical)' : 'var(--success)'}">${data.malicious||0}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country || 'N/A'}</div></div>
+                `;
+            } else if (service === 'abuseipdb') {
+                const s = data.abuse_confidence_score||0, r = data.total_reports||0;
+                detailsHtml = `
+                    <div class="ti-detail"><div class="ti-detail-label">Abuse Score</div><div class="ti-detail-value" style="color: ${s>=50||r>=100 ? 'var(--critical)' : s>=25||r>=10 ? 'var(--high)' : 'var(--success)'}">${s}%</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Reports</div><div class="ti-detail-value">${r}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country_code||'N/A'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">ISP</div><div class="ti-detail-value">${data.isp||'N/A'}</div></div>
+                `;
+            } else if (service === 'otx') {
+                const p = data.pulse_count||0;
+                detailsHtml = `
+                    <div class="ti-detail"><div class="ti-detail-label">Pulse Count</div><div class="ti-detail-value" style="color: ${p>=10 ? 'var(--critical)' : p>=3 ? 'var(--high)' : 'var(--success)'}">${p}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Country</div><div class="ti-detail-value">${data.country||data.country_code||'N/A'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">ASN</div><div class="ti-detail-value">${data.asn||'N/A'}</div></div>
+                `;
+            } else if (service === 'pulsedive') {
+                const risk = data.risk||'none', threats = data.threats||[], rf = data.risk_factors||[];
+                detailsHtml = `
+                    <div class="ti-detail"><div class="ti-detail-label">Risk</div><div class="ti-detail-value" style="color: ${risk==='critical'||risk==='high' ? 'var(--critical)' : risk==='medium' ? 'var(--high)' : 'var(--success)'}; text-transform: uppercase;">${risk}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Threats</div><div class="ti-detail-value" style="color: ${threats.length>0 ? 'var(--critical)' : 'var(--success)'}">${threats.length>0 ? threats.join(', ') : 'None'}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Risk Factors</div><div class="ti-detail-value">${rf.length>0 ? rf.slice(0,3).join(', ') : 'None'}</div></div>
+                `;
+            }
+            detailsHtml += `<div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.85rem; word-break: break-all;">${indicator}</div></div>`;
+            document.getElementById('tiResults').innerHTML = `
+                <div class="panel">
+                    <div class="ti-verdict ${verdictClass}">
+                        <div class="ti-verdict-icon">${verdictIcon}</div>
+                        <div>
+                            <div class="ti-verdict-label">${verdictLabel}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary);">${verdictDesc}</div>
+                        </div>
+                    </div>
+                    <div class="ti-details">${detailsHtml}</div>
+                    <details style="margin-top: 1.5rem;">
+                        <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.85rem;">📄 Raw Response</summary>
+                        <pre style="margin-top: 0.75rem; font-size: 0.8rem; overflow-x: auto; background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                </div>
+            `;
         }
-        
+
         function displayAggregatedTIResults(data) {
             const overallVerdict = (data.overall_verdict || 'unknown').toLowerCase();
             let verdictClass, verdictIcon, verdictLabel, verdictDesc;
-            if (overallVerdict === 'clean' || overallVerdict === 'safe') { verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected across all services.'; }
-            else if (overallVerdict === 'suspicious' || overallVerdict === 'medium') { verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected by one or more services.'; }
-            else if (overallVerdict === 'malicious' || overallVerdict === 'high' || overallVerdict === 'critical') { verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Confirmed threats detected!'; }
-            else { verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.'; }
-            
-            // Build service breakdown
-            let servicesHtml = '<div style="margin-top: 1rem;"><div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 0.5rem;">Service Breakdown:</div>';
+            if (overallVerdict === 'clean' || overallVerdict === 'safe') {
+                verdictClass = 'clean'; verdictIcon = '✓'; verdictLabel = 'CLEAN'; verdictDesc = 'No threats detected across all services.';
+            } else if (overallVerdict === 'suspicious' || overallVerdict === 'medium') {
+                verdictClass = 'suspicious'; verdictIcon = '⚠'; verdictLabel = 'SUSPICIOUS'; verdictDesc = 'Potential threats detected by one or more services.';
+            } else if (overallVerdict === 'malicious' || overallVerdict === 'high' || overallVerdict === 'critical') {
+                verdictClass = 'malicious'; verdictIcon = '✗'; verdictLabel = 'MALICIOUS'; verdictDesc = 'Confirmed threats detected!';
+            } else {
+                verdictClass = 'suspicious'; verdictIcon = '?'; verdictLabel = 'UNKNOWN'; verdictDesc = 'Unable to determine threat level.';
+            }
+
+            let servicesHtml = '<div style="margin-top: 1.5rem;"><div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--accent);">Service Breakdown:</div>';
             for (const result of data.results || []) {
                 const serviceName = result.service || 'Unknown';
                 const threatLevel = (result.threat_level || result.note || 'N/A').toLowerCase();
                 let serviceIcon = '○', serviceColor = 'var(--text-secondary)';
-                if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') { serviceIcon = '✗'; serviceColor = 'var(--critical)'; }
-                else if (threatLevel === 'suspicious' || threatLevel === 'medium') { serviceIcon = '⚠'; serviceColor = 'var(--high)'; }
-                else if (threatLevel === 'clean' || threatLevel === 'safe') { serviceIcon = '✓'; serviceColor = 'var(--accent)'; }
-                
-                servicesHtml += `<div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border);"><span style="text-transform: capitalize;">${serviceName}</span><span style="color: ${serviceColor}; font-weight: bold;">${serviceIcon} ${threatLevel.toUpperCase()}</span></div>`;
+                if (threatLevel === 'malicious' || threatLevel === 'high' || threatLevel === 'critical') {
+                    serviceIcon = '✗'; serviceColor = 'var(--critical)';
+                } else if (threatLevel === 'suspicious' || threatLevel === 'medium') {
+                    serviceIcon = '⚠'; serviceColor = 'var(--high)';
+                } else if (threatLevel === 'clean' || threatLevel === 'safe') {
+                    serviceIcon = '✓'; serviceColor = 'var(--success)';
+                }
+                servicesHtml += `
+                    <div style="display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border);">
+                        <span style="text-transform: capitalize;">${serviceName}</span>
+                        <span style="color: ${serviceColor}; font-weight: bold;">${serviceIcon} ${threatLevel.toUpperCase()}</span>
+                    </div>
+                `;
             }
             servicesHtml += '</div>';
-            
-            // Overall stats
-            const statsHtml = `<div class="ti-details">
-                <div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.8rem; word-break: break-all;">${data.indicator}</div></div>
-                <div class="ti-detail"><div class="ti-detail-label">Services Queried</div><div class="ti-detail-value">${data.total_services}</div></div>
-                <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: var(--critical)">${data.threat_counts?.malicious || 0}</div></div>
-                <div class="ti-detail"><div class="ti-detail-label">Suspicious</div><div class="ti-detail-value" style="color: var(--high)">${data.threat_counts?.suspicious || 0}</div></div>
-                <div class="ti-detail"><div class="ti-detail-label">Clean</div><div class="ti-detail-value" style="color: var(--accent)">${data.threat_counts?.clean || 0}</div></div>
-            </div>`;
-            
-            document.getElementById('tiResults').innerHTML = `<div class="panel">
-                <div class="ti-verdict ${verdictClass}">
-                    <div class="ti-verdict-icon">${verdictIcon}</div>
-                    <div>
-                        <div class="ti-verdict-label">${verdictLabel}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${verdictDesc}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">${data.verdict_reason}</div>
-                    </div>
+
+            const statsHtml = `
+                <div class="ti-details">
+                    <div class="ti-detail"><div class="ti-detail-label">Indicator</div><div class="ti-detail-value" style="font-size: 0.85rem; word-break: break-all;">${data.indicator}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Services Queried</div><div class="ti-detail-value">${data.total_services}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Malicious</div><div class="ti-detail-value" style="color: var(--critical)">${data.threat_counts?.malicious || 0}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Suspicious</div><div class="ti-detail-value" style="color: var(--high)">${data.threat_counts?.suspicious || 0}</div></div>
+                    <div class="ti-detail"><div class="ti-detail-label">Clean</div><div class="ti-detail-value" style="color: var(--success)">${data.threat_counts?.clean || 0}</div></div>
                 </div>
-                ${statsHtml}
-                ${servicesHtml}
-                <details style="margin-top: 1rem;"><summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.8rem;">Raw Response</summary><pre style="margin-top: 0.5rem; font-size: 0.75rem; overflow-x: auto; background: var(--bg-tertiary); padding: 0.75rem; border-radius: 4px;">${JSON.stringify(data, null, 2)}</pre></details>
-            </div>`;
+            `;
+
+            document.getElementById('tiResults').innerHTML = `
+                <div class="panel">
+                    <div class="ti-verdict ${verdictClass}">
+                        <div class="ti-verdict-icon">${verdictIcon}</div>
+                        <div>
+                            <div class="ti-verdict-label">${verdictLabel}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary);">${verdictDesc}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">${data.verdict_reason}</div>
+                        </div>
+                    </div>
+                    ${statsHtml}
+                    ${servicesHtml}
+                    <details style="margin-top: 1.5rem;">
+                        <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.85rem;">📄 Raw Response</summary>
+                        <pre style="margin-top: 0.75rem; font-size: 0.8rem; overflow-x: auto; background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                </div>
+            `;
         }
-        
+
         function addFeedItem(type, message) {
-            const feed = document.getElementById('liveFeed'), time = new Date().toLocaleTimeString();
+            const feed = document.getElementById('liveFeed');
+            const time = new Date().toLocaleTimeString();
             const item = document.createElement('div');
             item.className = 'feed-item';
-            item.innerHTML = `<span class="time">[${time}]</span> <span class="type">[${type}]</span> ${message}`;
+            item.innerHTML = `<span class="time">[${time}]</span> <span class="type">[${type}]</span> <span>${message}</span>`;
             feed.insertBefore(item, feed.firstChild);
             if (feed.children.length > 100) feed.removeChild(feed.lastChild);
         }
-        
+
         function connectWS() {
             ws = new WebSocket(`${WS_PROTOCOL}//${location.host}/ws/stream`);
-            ws.onopen = () => { document.getElementById('ws-dot').className = 'status-dot connected'; document.getElementById('ws-status').textContent = 'Connected'; };
-            ws.onclose = () => { document.getElementById('ws-dot').className = 'status-dot disconnected'; document.getElementById('ws-status').textContent = 'Disconnected'; setTimeout(connectWS, 3000); };
-            ws.onerror = () => { document.getElementById('ws-dot').className = 'status-dot disconnected'; document.getElementById('ws-status').textContent = 'Error'; };
+            ws.onopen = () => {
+                document.getElementById('connectionStatus').className = 'live-indicator';
+                document.getElementById('ws-status').textContent = 'Live Connected';
+            };
+            ws.onclose = () => {
+                document.getElementById('connectionStatus').className = 'live-indicator disconnected';
+                document.getElementById('ws-status').textContent = 'Disconnected';
+                setTimeout(connectWS, 3000);
+            };
+            ws.onerror = () => {
+                document.getElementById('connectionStatus').className = 'live-indicator disconnected';
+                document.getElementById('ws-status').textContent = 'Error';
+            };
             ws.onmessage = (e) => {
                 try {
-                    const data = JSON.parse(e.data), eventType = data.type, eventData = data.data || {};
-                    if (eventType === 'plugin.completed') { addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s)`); handlePluginCompleted(eventData); }
-                    else if (eventType === 'plugin.failed') { addFeedItem(eventType, `${eventData.plugin} failed`); handlePluginFailed(eventData); }
-                    else if (eventType === 'workflow.completed') { addFeedItem(eventType, 'Workflow completed'); fetchMetrics(); }
-                    else if (eventType === 'dns.propagation.completed') { addFeedItem(eventType, `DNS check for ${eventData.domain} completed`); handleDNSPropagationCompleted(eventData); }
-                    else if (eventType === 'dns.propagation.failed') { addFeedItem(eventType, `DNS check for ${eventData.domain} failed: ${eventData.error}`); }
-                    else addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
-                } catch { addFeedItem('event', e.data); }
+                    const data = JSON.parse(e.data);
+                    const eventType = data.type;
+                    const eventData = data.data || {};
+                    if (eventType === 'plugin.completed') {
+                        addFeedItem(eventType, `${eventData.plugin} found ${eventData.findings_count} issue(s)`);
+                        handlePluginCompleted(eventData);
+                    } else if (eventType === 'plugin.failed') {
+                        addFeedItem(eventType, `${eventData.plugin} failed`);
+                        handlePluginFailed(eventData);
+                    } else if (eventType === 'workflow.completed') {
+                        addFeedItem(eventType, 'Workflow completed');
+                        fetchMetrics();
+                    } else if (eventType === 'dns.propagation.completed') {
+                        addFeedItem(eventType, `DNS check for ${eventData.domain} completed`);
+                        handleDNSPropagationCompleted(eventData);
+                    } else if (eventType === 'dns.propagation.failed') {
+                        addFeedItem(eventType, `DNS check for ${eventData.domain} failed: ${eventData.error}`);
+                    } else {
+                        addFeedItem(eventType, eventData.issue || JSON.stringify(eventData).slice(0, 100));
+                    }
+                } catch {
+                    addFeedItem('event', e.data);
+                }
             };
         }
-        
-        // DNS Propagation Map Functions
+
+        // =====================
+        // DNS PROPAGATION MAP
+        // =====================
+
         let dnsResults = null;
-        let dnsTooltip = null;
 
-        // World map path data (simplified)
-        const WORLD_MAP_PATH = "M2,77L2,69L3,67L5,68L6,67L8,68L8,66L11,64L13,65L14,63L16,64L18,62L20,63L20,61L23,60L25,61L26,59L28,60L28,58L31,57L33,58L34,56L36,57L36,55L39,54L41,55L42,53L44,54L44,52L47,51L49,52L50,50L52,51L52,49L55,48L57,49L58,47L60,48L60,46L63,45L65,46L66,44L68,45L68,43L71,42L73,43L74,41L76,42L76,40L79,39L81,40L82,38L84,39L84,37L87,36L89,37L90,35L92,36L92,34L95,33L97,34L98,32L100,33L100,31L103,30L105,31L106,29L108,30L108,28L111,27L113,28L114,26L116,27L116,25L119,24L121,25L122,23L124,24L124,22L127,21L129,22L130,20L132,21L132,19L135,18L137,19L138,17L140,18L140,16L143,15L145,16L146,14L148,15L148,13L151,12L153,13L154,11L156,12L156,10L159,9L161,10L162,8L164,9L164,7L167,6L169,7L170,5L172,6L172,4L175,3L177,4L178,2L180,3";
-
-        // Convert lat/lon to x/y coordinates for the map (Mercator-like projection)
         function latLonToXY(lat, lon, width, height) {
-            // Map bounds
             const lonMin = -180, lonMax = 180;
             const latMin = -60, latMax = 85;
-
             const x = ((lon - lonMin) / (lonMax - lonMin)) * width;
             const latRad = lat * Math.PI / 180;
             const mercN = Math.log(Math.tan((Math.PI / 4) + (latRad / 2)));
@@ -571,8 +1577,7 @@
             const mercNMin = Math.log(Math.tan((Math.PI / 4) + (latMinRad / 2)));
             const mercNMax = Math.log(Math.tan((Math.PI / 4) + (latMaxRad / 2)));
             const y = height - ((mercN - mercNMin) / (mercNMax - mercNMin)) * height;
-
-            return { x: Math.max(10, Math.min(width - 10, x)), y: Math.max(10, Math.min(height - 10, y)) };
+            return { x: Math.max(15, Math.min(width - 15, x)), y: Math.max(15, Math.min(height - 15, y)) };
         }
 
         async function checkDNSPropagation() {
@@ -587,14 +1592,24 @@
             // Show loading state
             document.getElementById('dnsResults').innerHTML = `
                 <div class="dns-map-container">
-                    <div class="dns-summary-bar">
-                        <span style="color: var(--accent);">Checking DNS propagation for <strong>${domain}</strong> (${recordType} records)...</span>
+                    <div class="dns-map-header">
+                        <div class="dns-map-title">DNS Propagation Map by <span>APIGuardian</span></div>
+                        <div class="dns-map-menu"><span></span></div>
                     </div>
                     <div class="dns-world-map" style="display: flex; align-items: center; justify-content: center;">
-                        <div class="empty-state" style="padding: 2rem;">
-                            <div class="icon" style="animation: pulse 1s infinite;">🔍</div>
-                            <p>Querying ${70}+ DNS servers worldwide...</p>
+                        <div class="empty-state" style="padding: 3rem;">
+                            <div class="icon" style="animation: pulse 1s infinite; font-size: 3rem;">🌍</div>
+                            <p style="color: #555;">Querying 80+ DNS servers worldwide for <strong>${domain}</strong>...</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">This may take a few seconds</p>
                         </div>
+                    </div>
+                    <div class="dns-map-legend">
+                        <div class="dns-legend-item">
+                            <div class="dns-legend-marker location"><svg viewBox="0 0 24 32" width="20" height="26"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#f39c12"/></svg></div>
+                            <span>Server Location</span>
+                        </div>
+                        <div class="dns-legend-item"><div class="dns-legend-marker resolved">✓</div><span>Resolved</span></div>
+                        <div class="dns-legend-item"><div class="dns-legend-marker not-resolved">✗</div><span>Not Resolved</span></div>
                     </div>
                 </div>
             `;
@@ -629,13 +1644,10 @@
             const container = document.getElementById('dnsResults');
             const summary = data.summary;
 
-            // Calculate statistics
             const successCount = data.results.filter(r => r.success && r.records.length > 0).length;
             const errorCount = data.results.filter(r => !r.success || r.error).length;
-            const noRecordCount = data.results.filter(r => r.success && r.records.length === 0).length;
 
-            // Propagation status color
-            let statusColor = 'var(--accent)';
+            let statusColor = 'var(--success)';
             let statusText = 'Fully Propagated';
             if (summary.propagation_percentage < 50) {
                 statusColor = 'var(--critical)';
@@ -646,44 +1658,59 @@
             }
 
             let html = `
-                <div class="dns-map-container">
-                    <div class="dns-summary-bar">
-                        <div class="dns-summary-item">
-                            <strong style="color: var(--accent);">${data.domain}</strong>
-                            <span class="dns-record-badge">${data.record_type}</span>
-                        </div>
-                        <div class="dns-summary-item">
-                            <div class="dns-summary-dot success"></div>
-                            <span>${successCount} Resolved</span>
-                        </div>
-                        <div class="dns-summary-item">
-                            <div class="dns-summary-dot error"></div>
-                            <span>${errorCount} Failed</span>
-                        </div>
-                        <div class="dns-summary-item">
-                            <span style="color: ${statusColor}; font-weight: bold;">${summary.propagation_percentage}% ${statusText}</span>
-                        </div>
-                        <div class="dns-propagation-bar">
-                            <div class="dns-propagation-fill" style="width: ${summary.propagation_percentage}%"></div>
-                        </div>
-                        <div class="dns-summary-item">
-                            <span style="color: var(--text-secondary);">Avg: ${summary.average_response_time_ms}ms</span>
-                        </div>
+                <div class="dns-summary-bar">
+                    <div class="dns-summary-item">
+                        <strong style="color: var(--accent);">${data.domain}</strong>
+                        <span class="dns-record-badge">${data.record_type}</span>
                     </div>
-                    <div class="dns-world-map" id="dnsWorldMap">
-                        ${renderWorldMapSVG(data.results)}
+                    <div class="dns-summary-item">
+                        <div class="dns-summary-dot success"></div>
+                        <span>${successCount} Resolved</span>
                     </div>
-                    <div style="padding: 1rem; border-top: 1px solid var(--border); background: var(--bg-tertiary);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                            <h3 style="color: var(--accent); font-size: 0.9rem; font-family: monospace;">RESOLVED VALUES</h3>
-                            <span style="color: var(--text-secondary); font-size: 0.8rem;">${summary.unique_records.length} unique record(s)</span>
-                        </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            ${summary.unique_records.map(r => `<span class="dns-record-badge" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;">${r}</span>`).join('')}
-                        </div>
+                    <div class="dns-summary-item">
+                        <div class="dns-summary-dot error"></div>
+                        <span>${errorCount} Failed</span>
+                    </div>
+                    <div class="dns-summary-item">
+                        <span style="color: ${statusColor}; font-weight: bold;">${summary.propagation_percentage}% ${statusText}</span>
+                    </div>
+                    <div class="dns-propagation-bar">
+                        <div class="dns-propagation-fill" style="width: ${summary.propagation_percentage}%"></div>
+                    </div>
+                    <div class="dns-summary-item">
+                        <span style="color: var(--text-secondary);">Avg: ${summary.average_response_time_ms}ms</span>
                     </div>
                 </div>
-                <h2 style="margin-top: 1.5rem;">Server Results</h2>
+
+                <div class="dns-map-container">
+                    <div class="dns-map-header">
+                        <div class="dns-map-title">DNS Propagation Map by <span>APIGuardian</span></div>
+                        <div class="dns-map-menu"><span></span></div>
+                    </div>
+                    <div class="dns-world-map" id="dnsWorldMap">
+                        ${renderWorldMapWithResults(data.results)}
+                    </div>
+                    <div class="dns-map-legend">
+                        <div class="dns-legend-item">
+                            <div class="dns-legend-marker location"><svg viewBox="0 0 24 32" width="20" height="26"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#f39c12"/></svg></div>
+                            <span>Server Location</span>
+                        </div>
+                        <div class="dns-legend-item"><div class="dns-legend-marker resolved">✓</div><span>Resolved</span></div>
+                        <div class="dns-legend-item"><div class="dns-legend-marker not-resolved">✗</div><span>Not Resolved</span></div>
+                    </div>
+                </div>
+
+                <div style="padding: 1.5rem; background: var(--bg-card); border-radius: 12px; margin-top: 1rem; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: var(--accent); font-size: 0.95rem;">RESOLVED VALUES</h3>
+                        <span style="color: var(--text-secondary); font-size: 0.85rem;">${summary.unique_records.length} unique record(s)</span>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${summary.unique_records.map(r => `<span class="dns-record-badge" style="font-size: 0.9rem; padding: 0.4rem 1rem; background: var(--bg-tertiary);">${r}</span>`).join('')}
+                    </div>
+                </div>
+
+                <h2>Server Results</h2>
                 <div class="dns-results-grid">
                     ${data.results.map(r => renderDNSResultCard(r)).join('')}
                 </div>
@@ -701,74 +1728,82 @@
             });
         }
 
-        function renderWorldMapSVG(results) {
-            const width = 900;
-            const height = 450;
+        function renderWorldMapWithResults(results) {
+            const width = 1000;
+            const height = 500;
 
-            // Create SVG with world map background
             let svg = `
                 <svg class="dns-map-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
                     <defs>
-                        <radialGradient id="markerGlow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:var(--accent);stop-opacity:0.6"/>
-                            <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0"/>
-                        </radialGradient>
-                        <filter id="glow">
-                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                            <feMerge>
-                                <feMergeNode in="coloredBlur"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
+                        <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e8f4fc"/>
+                            <stop offset="100%" style="stop-color:#d4e9f7"/>
+                        </linearGradient>
+                        <filter id="markerShadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
                         </filter>
                     </defs>
 
-                    <!-- Grid lines -->
-                    <g stroke="#1a1a1a" stroke-width="0.5">
-                        ${[...Array(19)].map((_, i) => `<line x1="0" y1="${i * 25}" x2="${width}" y2="${i * 25}"/>`).join('')}
-                        ${[...Array(37)].map((_, i) => `<line x1="${i * 25}" y1="0" x2="${i * 25}" y2="${height}"/>`).join('')}
-                    </g>
+                    <rect width="${width}" height="${height}" fill="url(#oceanGradient)"/>
 
-                    <!-- Continent outlines (simplified) -->
-                    <g fill="none" stroke="#2a2a2a" stroke-width="1">
+                    <!-- World Map Continents -->
+                    <g fill="#4a90d9">
                         <!-- North America -->
-                        <path d="M 50 100 Q 100 80 150 90 Q 200 60 230 80 Q 250 100 240 140 Q 220 180 180 200 Q 140 210 100 190 Q 60 160 50 100"/>
+                        <path d="M 50 120 Q 60 80 120 60 Q 180 50 230 70 Q 260 60 280 80 Q 300 100 290 130 Q 270 150 260 180 Q 240 200 220 210 Q 200 220 180 220 Q 160 230 150 250 Q 140 270 130 260 Q 100 240 80 200 Q 60 170 50 120 Z"/>
+                        <!-- Greenland -->
+                        <path d="M 320 50 Q 380 40 400 60 Q 410 90 390 110 Q 360 120 330 100 Q 310 80 320 50 Z"/>
                         <!-- South America -->
-                        <path d="M 170 220 Q 200 230 210 280 Q 220 340 200 380 Q 170 400 150 370 Q 140 320 150 270 Q 160 230 170 220"/>
+                        <path d="M 200 280 Q 230 270 250 290 Q 270 320 280 360 Q 275 400 260 430 Q 240 460 210 450 Q 180 430 170 390 Q 165 350 175 310 Q 185 280 200 280 Z"/>
                         <!-- Europe -->
-                        <path d="M 420 80 Q 480 70 520 90 Q 540 110 530 140 Q 500 150 460 140 Q 430 120 420 80"/>
+                        <path d="M 440 80 Q 470 70 510 80 Q 540 90 560 110 Q 570 130 550 150 Q 520 160 490 155 Q 460 150 440 130 Q 430 110 440 80 Z"/>
+                        <!-- UK -->
+                        <path d="M 420 90 Q 435 85 440 100 Q 445 115 430 120 Q 415 115 420 90 Z"/>
                         <!-- Africa -->
-                        <path d="M 430 160 Q 500 150 530 200 Q 540 280 500 350 Q 450 370 420 330 Q 400 260 430 160"/>
-                        <!-- Asia -->
-                        <path d="M 540 60 Q 650 50 750 80 Q 820 120 800 180 Q 750 220 680 200 Q 600 170 540 130 Q 520 100 540 60"/>
+                        <path d="M 460 180 Q 500 170 540 190 Q 570 220 580 270 Q 575 330 550 380 Q 520 420 480 410 Q 450 390 440 340 Q 435 290 450 240 Q 455 200 460 180 Z"/>
+                        <!-- Middle East -->
+                        <path d="M 560 150 Q 600 140 630 160 Q 650 180 640 210 Q 610 230 580 220 Q 560 200 560 150 Z"/>
+                        <!-- Russia/Asia -->
+                        <path d="M 560 60 Q 650 40 750 50 Q 850 60 900 90 Q 930 120 920 160 Q 900 180 850 170 Q 800 175 750 160 Q 700 150 660 140 Q 620 130 580 120 Q 560 100 560 60 Z"/>
+                        <!-- India -->
+                        <path d="M 660 200 Q 700 190 720 220 Q 730 260 710 290 Q 680 300 660 280 Q 650 250 660 200 Z"/>
+                        <!-- Southeast Asia -->
+                        <path d="M 750 200 Q 780 190 810 210 Q 830 240 820 270 Q 790 280 760 260 Q 745 230 750 200 Z"/>
+                        <!-- China/East Asia -->
+                        <path d="M 750 120 Q 800 100 850 120 Q 880 150 870 180 Q 840 200 800 190 Q 760 175 750 120 Z"/>
+                        <!-- Japan -->
+                        <path d="M 890 130 Q 910 120 920 140 Q 925 165 910 180 Q 895 175 890 130 Z"/>
+                        <!-- Indonesia -->
+                        <path d="M 780 300 Q 820 295 850 305 Q 870 320 860 340 Q 830 350 800 340 Q 775 325 780 300 Z"/>
                         <!-- Australia -->
-                        <path d="M 750 300 Q 820 290 850 320 Q 860 370 830 390 Q 780 400 750 370 Q 740 330 750 300"/>
+                        <path d="M 820 360 Q 880 350 920 380 Q 940 420 920 450 Q 880 470 840 460 Q 800 440 810 400 Q 815 375 820 360 Z"/>
+                        <!-- New Zealand -->
+                        <path d="M 960 430 Q 975 420 980 440 Q 985 465 970 475 Q 955 470 960 430 Z"/>
                     </g>
 
                     <!-- DNS Server Markers -->
                     <g>
             `;
 
-            // Plot each DNS server result
             results.forEach((result, i) => {
                 const pos = latLonToXY(result.lat, result.lon, width, height);
-                let markerClass = 'pending';
-                if (result.success && result.records.length > 0) {
-                    markerClass = 'success';
-                } else if (result.error && result.error.includes('Timeout')) {
-                    markerClass = 'timeout';
-                } else if (!result.success || result.error) {
-                    markerClass = 'error';
+                const isSuccess = result.success && result.records.length > 0;
+                const isTimeout = result.error && result.error.includes('Timeout');
+
+                let markerColor = '#f39c12'; // Default yellow/orange
+                let checkMark = '';
+
+                if (isSuccess) {
+                    checkMark = `<text x="${pos.x}" y="${pos.y - 18}" text-anchor="middle" fill="#27ae60" font-size="14" font-weight="bold">✓</text>`;
+                } else if (!isTimeout && (result.error || !result.success)) {
+                    checkMark = `<text x="${pos.x}" y="${pos.y - 18}" text-anchor="middle" fill="#e74c3c" font-size="14" font-weight="bold">✗</text>`;
                 }
 
                 svg += `
-                    <circle
-                        id="dns-marker-${i}"
-                        class="dns-marker ${markerClass}"
-                        cx="${pos.x}"
-                        cy="${pos.y}"
-                        r="5"
-                        filter="url(#glow)"
-                    />
+                    <g id="dns-marker-${i}" class="dns-marker" filter="url(#markerShadow)">
+                        <path d="M ${pos.x} ${pos.y} c0-8 -6-14 -6-14 s-6 6 -6 14 c0 4 3 7 6 10 c3-3 6-6 6-10 z" transform="translate(6, -24)" fill="${markerColor}"/>
+                        <circle cx="${pos.x}" cy="${pos.y - 16}" r="4" fill="#fff"/>
+                        ${checkMark}
+                    </g>
                 `;
             });
 
@@ -800,17 +1835,17 @@
                     <div class="dns-result-header">
                         <div>
                             <div class="dns-result-server">${result.server_name}</div>
-                            <div class="dns-result-location">${result.city}, ${result.location}</div>
+                            <div class="dns-result-location">📍 ${result.city}, ${result.location}</div>
                         </div>
-                        <span style="color: var(--${statusClass === 'success' ? 'accent' : statusClass === 'error' ? 'critical' : 'high'}); font-size: 1.2rem;">${statusIcon}</span>
+                        <span style="color: var(--${statusClass === 'success' ? 'success' : statusClass === 'error' ? 'critical' : 'high'}); font-size: 1.3rem;">${statusIcon}</span>
                     </div>
                     <div class="dns-result-records">
                         ${result.records.length > 0 ? result.records.join('<br>') : (result.error || 'No records')}
                     </div>
                     <div class="dns-result-meta">
-                        <span>IP: ${result.server_ip}</span>
-                        <span>${result.response_time_ms}ms</span>
-                        ${result.ttl ? `<span>TTL: ${result.ttl}s</span>` : ''}
+                        <span>🌐 ${result.server_ip}</span>
+                        <span>⚡ ${result.response_time_ms}ms</span>
+                        ${result.ttl ? `<span>⏰ TTL: ${result.ttl}s</span>` : ''}
                     </div>
                 </div>
             `;
@@ -824,16 +1859,16 @@
             tooltip.id = 'dnsTooltip';
 
             let statusText = 'Resolved';
-            let statusColor = 'var(--accent)';
+            let statusColor = '#27ae60';
             if (result.error && result.error.includes('Timeout')) {
                 statusText = 'Timeout';
-                statusColor = 'var(--high)';
+                statusColor = '#f39c12';
             } else if (!result.success || result.error) {
                 statusText = 'Failed';
-                statusColor = 'var(--critical)';
+                statusColor = '#e74c3c';
             } else if (result.records.length === 0) {
                 statusText = 'No Records';
-                statusColor = 'var(--high)';
+                statusColor = '#f39c12';
             }
 
             tooltip.innerHTML = `
@@ -857,7 +1892,7 @@
                 ${result.records.length > 0 ? `
                     <div class="dns-tooltip-row" style="flex-direction: column; align-items: flex-start;">
                         <span class="dns-tooltip-label">Records:</span>
-                        <span class="dns-tooltip-value" style="margin-top: 0.25rem; word-break: break-all; font-size: 0.75rem;">${result.records.slice(0, 3).join(', ')}${result.records.length > 3 ? '...' : ''}</span>
+                        <span class="dns-tooltip-value" style="margin-top: 0.25rem; word-break: break-all; font-size: 0.8rem;">${result.records.slice(0, 3).join(', ')}${result.records.length > 3 ? '...' : ''}</span>
                     </div>
                 ` : ''}
                 ${result.ttl ? `
@@ -869,21 +1904,21 @@
             `;
 
             const mapContainer = document.getElementById('dnsWorldMap');
-            mapContainer.appendChild(tooltip);
+            if (mapContainer) {
+                mapContainer.appendChild(tooltip);
 
-            // Position tooltip near the marker
-            const rect = event.target.getBoundingClientRect();
-            const mapRect = mapContainer.getBoundingClientRect();
-            let left = rect.left - mapRect.left + 15;
-            let top = rect.top - mapRect.top - 10;
+                const rect = event.target.getBoundingClientRect();
+                const mapRect = mapContainer.getBoundingClientRect();
+                let left = rect.left - mapRect.left + 20;
+                let top = rect.top - mapRect.top - 10;
 
-            // Keep tooltip within bounds
-            if (left + 220 > mapRect.width) left = rect.left - mapRect.left - 220;
-            if (top + 180 > mapRect.height) top = rect.top - mapRect.top - 180;
-            if (top < 10) top = 10;
+                if (left + 240 > mapRect.width) left = rect.left - mapRect.left - 240;
+                if (top + 200 > mapRect.height) top = rect.top - mapRect.top - 200;
+                if (top < 10) top = 10;
 
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            }
         }
 
         function hideDNSTooltip() {
@@ -891,7 +1926,6 @@
             if (tooltip) tooltip.remove();
         }
 
-        // Handle WebSocket DNS propagation events
         function handleDNSPropagationCompleted(data) {
             if (data.domain === document.getElementById('dnsDomain').value.trim()) {
                 dnsResults = data;
@@ -899,7 +1933,11 @@
             }
         }
 
-        fetchMetrics(); fetchPlugins(); connectWS(); setInterval(fetchMetrics, 10000);
+        // Initialize
+        fetchMetrics();
+        fetchPlugins();
+        connectWS();
+        setInterval(fetchMetrics, 10000);
     </script>
 </body>
 </html>
