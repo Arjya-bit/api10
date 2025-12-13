@@ -1,11 +1,8 @@
 """Rate Limit Analyzer - Evaluate API rate limiting"""
 import logging
-import asyncio
 from typing import Dict, List, Any
-from datetime import datetime
 
 from apiguardian.core.plugin_manager import AnalyzerPlugin
-from apiguardian.utils.http_client import HTTPClient, HTTPResponse
 
 logger = logging.getLogger(__name__)
 

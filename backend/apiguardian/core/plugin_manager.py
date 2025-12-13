@@ -106,7 +106,7 @@ class PluginManager:
         try:
             package = importlib.import_module(package_path)
             package_dir = Path(package.__file__).parent
-            
+
             for subdir in ['analyzers', 'fuzzers', 'recon', 'scanners']:
                 subpackage_path = f"{package_path}.{subdir}"
                 try:
@@ -114,6 +114,13 @@ class PluginManager:
                     self._scan_package(subpackage, subpackage_path)
                 except ImportError as e:
                     logger.debug(f"Could not import {subpackage_path}: {e}")
+
+            # Also discover reporters from apiguardian.reports
+            try:
+                reports_package = importlib.import_module("apiguardian.reports")
+                self._scan_package(reports_package, "apiguardian.reports")
+            except ImportError as e:
+                logger.debug(f"Could not import apiguardian.reports: {e}")
                     
         except ImportError as e:
             logger.error(f"Could not import plugin package {package_path}: {e}")

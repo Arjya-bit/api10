@@ -297,12 +297,60 @@ class WorkflowManager:
             step.finished_at = datetime.now(timezone.utc)
     
     def _evaluate_condition(self, condition: str, context: Dict) -> bool:
-        """Evaluate a step condition"""
+        """Evaluate a step condition safely without using eval()"""
+        import re
         try:
-            # Simple expression evaluation
-            # e.g., "findings.critical > 0"
-            return eval(condition, {'__builtins__': {}}, context)
-        except Exception:
+            # Parse simple conditions like "findings.critical > 0"
+            # Support format: "key.subkey operator value"
+            match = re.match(r'^(\w+(?:\.\w+)*)\s*(==|!=|>=|<=|>|<)\s*(.+)$', condition.strip())
+            if not match:
+                logger.warning(f"Could not parse condition: {condition}")
+                return True
+
+            key_path, operator, value_str = match.groups()
+
+            # Navigate to the value in context
+            current = context
+            for key in key_path.split('.'):
+                if isinstance(current, dict):
+                    current = current.get(key, 0)
+                else:
+                    current = getattr(current, key, 0)
+
+            # Parse the comparison value
+            value_str = value_str.strip()
+            if value_str.lower() == 'true':
+                compare_value = True
+            elif value_str.lower() == 'false':
+                compare_value = False
+            elif value_str.startswith('"') or value_str.startswith("'"):
+                compare_value = value_str[1:-1]
+            else:
+                try:
+                    compare_value = int(value_str)
+                except ValueError:
+                    try:
+                        compare_value = float(value_str)
+                    except ValueError:
+                        compare_value = value_str
+
+            # Perform comparison
+            if operator == '==':
+                return current == compare_value
+            elif operator == '!=':
+                return current != compare_value
+            elif operator == '>':
+                return current > compare_value
+            elif operator == '<':
+                return current < compare_value
+            elif operator == '>=':
+                return current >= compare_value
+            elif operator == '<=':
+                return current <= compare_value
+
+            return True
+        except Exception as e:
+            logger.warning(f"Condition evaluation failed for '{condition}': {e}")
             return True  # Default to running if condition fails
 
 
