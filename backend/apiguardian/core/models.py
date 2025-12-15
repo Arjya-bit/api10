@@ -223,7 +223,10 @@ class IntegrationConfig(Base):
 def get_engine(db_url: str = None):
     """Get SQLAlchemy engine"""
     if db_url is None:
-        db_path = os.environ.get('APIGUARDIAN_DB', '/app/backend/apiguardian.db')
+        # Use environment variable or default to backend directory
+        default_db = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'apiguardian.db')
+        default_db = os.path.abspath(default_db)
+        db_path = os.environ.get('APIGUARDIAN_DB', default_db)
         db_url = f"sqlite:///{db_path}"
     return create_engine(db_url, echo=False)
 
