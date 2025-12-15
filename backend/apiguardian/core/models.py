@@ -223,21 +223,17 @@ class IntegrationConfig(Base):
 def get_engine(db_url: str = None):
     """Get SQLAlchemy engine"""
     if db_url is None:
-        # Use environment variable or default to backend directory
-        # Calculate path: models.py is in apiguardian/core/, so go up 2 levels to backend/
-        this_file = os.path.abspath(__file__)
-        core_dir = os.path.dirname(this_file)
-        apiguardian_dir = os.path.dirname(core_dir)
-        backend_dir = os.path.dirname(apiguardian_dir)
-        default_db = os.path.join(backend_dir, 'apiguardian.db')
-
-        db_path = os.environ.get('APIGUARDIAN_DB', default_db)
-
-        # Ensure parent directory exists
-        db_dir = os.path.dirname(db_path)
-        if db_dir and not os.path.exists(db_dir):
-            os.makedirs(db_dir, exist_ok=True)
-
+        # Check environment variable first
+        db_path = os.environ.get('APIGUARDIAN_DB')
+        if not db_path:
+            # Simple approach: use current working directory
+            cwd = os.getcwd()
+            if cwd.endswith('backend'):
+                db_path = os.path.join(cwd, 'apiguardian.db')
+            elif os.path.isdir(os.path.join(cwd, 'backend')):
+                db_path = os.path.join(cwd, 'backend', 'apiguardian.db')
+            else:
+                db_path = os.path.join(cwd, 'apiguardian.db')
         db_url = f"sqlite:///{db_path}"
     return create_engine(db_url, echo=False)
 
